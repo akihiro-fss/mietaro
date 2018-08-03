@@ -1,0 +1,791 @@
+<?php
+/**
+ *
+ * 作成日：2017/08/03
+ * 更新日：2017/1/23
+ * 作成者：戸田滉洋
+ * 更新者：丸山　隼
+ *
+ */
+
+/**
+ * The Electric Model.
+ *
+ * 電力量のデータの転送
+ * @package app
+ * @extends Model
+ *
+ *
+ */
+use Orm\Observer;
+class Model_Electric extends \orm\Model {
+
+    protected static $_table_name = 'Electric';
+    protected static $_primary_key = array('electric_id');
+    protected static $_properties = array(
+        'electric_id',
+        'electric_at',
+        'str_id',
+        'electric_kw',
+        'created_at',
+    );
+    protected static $_observers = array(
+        'Orm\Observer_CreatedAt' => array(
+            'events' => array('before_insert'),
+            'mysql_timestamp' => false,
+        ),
+    );
+
+    //DBデータ取得
+    private static function DbData($str_id, $start, $end) {
+        $sql = "SELECT electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
+        $query = \DB::query($sql)->execute();
+        return $query;
+    }
+
+    //SELECT用メソッド
+    private static function selectElectricData($str_id, $start, $end) {
+        $sql = "SELECT electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
+        return \DB::query($sql)->execute()->as_array();
+    }
+    //月間データ用SELECT
+    private static function selectElectricDataForMonth($str_id, $start, $end) {
+        $sql = "SELECT electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id AND electric_at >= '$start' AND electric_at < '$end'";
+        return \DB::query($sql)->execute()->as_array();
+    }
+
+    //１日分のデータ取得
+    public static function onedaydata() {
+        $secondGraphFlg = Input::post('second_graph_flag');
+        $onedaydate = date('Y-m-d');
+        $twodaydate = '';
+        if (Input::method() == 'POST') {
+            $onedaydate = Input::post('onedaydate');
+            if($onedaydate == ""){
+                $onedaydate = date('Y-m-d');
+            }
+            if($secondGraphFlg){
+                $twodaydate = Input::post('twodaydate');
+                if($twodaydate == ""){
+                    $twodaydate = date('Y-m-d', strtotime('-1 days'));
+                }
+            }
+            $oneday_st = date('Y/m/d 00:00:00', strtotime($onedaydate));
+            $oneday_end = date('Y/m/d 23:59:59', strtotime($onedaydate));
+            $yesterday_st = date('Y/m/d 00:00:00', strtotime($twodaydate));
+            $yesterday_end = date('Y/m/d 23:59:59', strtotime($twodaydate));
+        } else {
+            $oneday_st = date("Y/m/d 00:00:00");
+            $oneday_end = date("Y/m/d 23:59:59");
+            $yesterday_st = date('Y/m/d 00:00:00', strtotime('-1 days'));
+            $yesterday_end = date('Y/m/d 23:59:59', strtotime('-1 days'));
+        }
+        //Authのインスタンス化
+        $auth = Auth::instance();
+        $str_id = $auth->get_str_id();
+        //１日分のデータの取得
+        $oneday = Model_Electric::DbData($str_id, $oneday_st, $oneday_end);
+        $onedayData = Model_Electric::onedaygraphdata($oneday);
+        $resultOneday = $onedayData['result'];
+        //昨日のデータ取得
+        if(!is_null($secondGraphFlg)){
+            $yesterday = Model_Electric::DbData($str_id, $yesterday_st, $yesterday_end);
+            $yesterdayData = Model_Electric::onedaygraphdata($yesterday);
+            $resultYesterday = $yesterdayData['result'];
+            $checkedFlg = 1;
+            $totalYesterDay = $yesterdayData['total'];
+        }else{
+            $totalYesterDay = 0;
+            $resultYesterday = array();
+            $checkedFlg = 0;
+        }
+
+
+
+        //店舗データ取得
+        $strDataArray = Model_BasicInfo::getStrDataByStrId($str_id);
+
+        //一日分のデータを整理
+        $resultsArray = array(
+                'str_id' => $str_id,
+                'str_data_array' => $strDataArray,
+                'target_date_1' => $onedaydate,
+                'target_date_2' => $twodaydate,
+                'checked_flg' => $checkedFlg,
+                'oneday' => $resultOneday,
+                'yesterday' => $resultYesterday,
+                'total_set_1' => $onedayData['total'],
+                'total_set_2' => $totalYesterDay,
+                );
+        return $resultsArray;
+    }
+
+    //一週間分のデータ取得
+    public static function weekdaydata() {
+        $secondGraphFlg = Input::post('second_graph_flag');
+        $weekdate = date('Y-m-d');
+        $twoweekdate = "";
+        if (Input::method() == 'POST') {
+            $weekdate = Input::post('oneweekdate');
+            if($weekdate == ""){
+                $weekdate = date('Y-m-d');
+            }
+            $week_st = date('Y-m-d 00:00:00', strtotime("-1 week",strtotime($weekdate)));
+            $week_end = date('Y-m-d 23:59:59', strtotime($weekdate));
+            if($secondGraphFlg){
+                $twoweekdate = Input::post('twoweekdate');
+                if($twoweekdate == ""){
+                    $twoweekdate = date('Y-m-d', strtotime("-1 week"));
+                }
+            }
+            $week_ago_st = date('Y-m-d 00:00:00', strtotime("-1 week",strtotime($twoweekdate)));
+            $week_ago_end = date('Y-m-d 23:59:59', strtotime($twoweekdate));
+        } else {
+            $week_st = date("Y-m-d 00:00:00", strtotime("-1 week"));
+            $week_end = date("Y-m-d 23:59:59");
+            $week_ago_st = date('Y-m-d 00:00:00', strtotime("-2 week"));
+            $week_ago_end = date('Y-m-d 23:59:59', strtotime("-1 week"));
+        }
+        //Authのインスタンス化
+        $auth = Auth::instance();
+        $str_id = $auth->get_str_id();
+        $result_a_week = Model_Electric::selectElectricData($str_id, $week_st, $week_end);
+        $result_a_week_ago = array();
+        if(!is_null($secondGraphFlg)){
+            //比較グラフの表示ー有効
+            $result_a_week_ago = Model_Electric::selectElectricData($str_id, $week_ago_st, $week_ago_end);
+            $checkedFlg = 1;
+        }else{
+            //比較グラフの表示ー無効
+            $checkedFlg = 0;
+        }
+        $result = Model_Electric::convertDataForWeek($result_a_week,$result_a_week_ago,$weekdate,$twoweekdate);
+        return array(
+            'target_date_1' => $weekdate,
+            'target_date_2' => $twoweekdate,
+            'checked_flg' => $checkedFlg,
+            'one_week' => $result['one_week'],
+            'two_week' => $result['two_week'],
+            'total_set_1' => $result['total_one_week'],
+            'total_set_2' => $result['total_two_week'],
+        );
+    }
+
+    //一ヶ月分のデータ取得
+    public static function monthdaydata() {
+        $secondGraphFlg = Input::post('second_graph_flag');
+        $onemonthdate = date('Y-m-d');
+        $twomonthdate = "";
+        if (Input::method() == 'POST') {
+            $onemonthdate = Input::post('onemonthdate');
+            $month_st = date('Y-m-1 00:00:00', strtotime($onemonthdate));
+            $month_end = date('Y-m-d 23:59:59', strtotime("-1 days ",strtotime(date('Y-m-1 00:00:00', strtotime("+1 MONTH ",strtotime($month_st))))));
+            if($secondGraphFlg){
+                $twomonthdate = Input::post('twomonthdate');
+                if($twomonthdate == ""){
+                    $twomonthdate = date('Y-m-01', strtotime("-1 days ",strtotime($month_st)));
+                }
+            }
+            $month_ago_st = date('Y-m-1 00:00:00', strtotime($twomonthdate));
+            $month_ago_end = date('Y-m-d 23:59:59', strtotime("-1 days ",strtotime(date('Y-m-1 00:00:00', strtotime("+1 MONTH ",strtotime($month_ago_st))))));
+        } else {
+            $month_st = date("Y-m-1 00:00:00", strtotime($onemonthdate));
+            $month_end = date('Y-m-d 23:59:59', strtotime("-1 days ",strtotime(date('Y-m-1 00:00:00', strtotime("+1 MONTH ",strtotime($month_st))))));
+            $month_ago_st = date('Y-m-1 00:00:00', strtotime("-1 month -1days",strtotime(date('Y-m-d hh:mm:ss'))));
+            $month_ago_end = date('Y-m-d 23:59:59', strtotime("-1 days ",strtotime(date('Y-m-1 00:00:00', strtotime("+1 MONTH ",strtotime($month_ago_st))))));
+        }
+
+        //Authのインスタンス化
+        $auth = Auth::instance();
+        $str_id = $auth->get_str_id();
+        $result_a_month = Model_Electric::selectElectricData($str_id, $month_st, $month_end);
+        $result_a_month_ago=array();
+        if(!is_null($secondGraphFlg)){
+            $result_a_month_ago = Model_Electric::selectElectricData($str_id, $month_ago_st, $month_ago_end);
+            //前月グラフデータ表示有効
+            $checkedFlg = 1;
+        }else{
+            //前月グラフデータ表示無効
+            $checkedFlg = 0;
+        }
+        $result = Model_Electric::convertDataForMonth($result_a_month,$result_a_month_ago,$month_st,$month_end,$month_ago_st,$month_ago_end,$checkedFlg);
+        return array(
+            'target_date_1' => $onemonthdate,
+            'target_date_2' => $twomonthdate,
+            'checked_flg' => $checkedFlg,
+            'month_data' => $result['result'],
+            'total_set_1' => $result['total_one_month'],
+            'total_set_2' => $result['total_two_month'],
+        );
+    }
+
+     //sideberに表示するための月間使用電力量取得
+    public static function getSideBerData() {
+        $monthdata = date('Y-m-d');
+        $month_st = date('Y-m-1 00:00:00', strtotime($monthdata));
+        $month_end = date('Y-m-d 23:59:59', strtotime("-1 days ", strtotime(date('Y-m-1 00:00:00', strtotime("+1 MONTH ", strtotime($month_st))))));
+        //Authのインスタンス化
+        $auth = Auth::instance();
+        $str_id = $auth->get_str_id();
+        $result_a_month = Model_Electric::DbData($str_id, $month_st, $month_end);
+        return $result_a_month;
+    }
+
+    //一年分のデータ取得
+    public static function yeardata() {
+        $secondGraphFlg = Input::post('second_graph_flag');
+        $oneyeardate = date('Y-m-d');
+        $twoyeardate = "";
+        if (Input::method() == 'POST') {
+            $oneyeardate = Input::post('oneyeardate');
+            $oneYearsdate_st = date('Y-01-01 00:00:00', strtotime($oneyeardate));
+            $oneYearsdate_end = date('Y-12-31 23:59:59', strtotime($oneyeardate));
+            if($secondGraphFlg){
+                $twoyeardate = Input::post('twoyeardate');
+                if($twoyeardate == ""){
+                    $twoyeardate = date('Y-01-01',strtotime('-1 years',strtotime($oneyeardate)));
+                }
+            }
+            $twoYearsdate_st = date('Y-01-01 00:00:00', strtotime($twoyeardate));
+            $twoYearsdate_end = date('Y-12-31 23:59:59', strtotime($twoyeardate));
+        } else {
+            $oneYearsdate_st = date('Y-01-01 00:00:00');
+            $oneYearsdate_end = date('Y-12-31 23:59:59');
+            $twoYearsdate_st = date('Y-01-01 00:00:00',strtotime('-1 years',strtotime($oneYearsdate_st)));
+            $twoYearsdate_end = date('Y-12-31 23:59:59',strtotime('-1 years',strtotime($oneYearsdate_end)));
+        }
+
+
+        //Authのインスタンス化
+        $auth = Auth::instance();
+        $str_id = $auth->get_str_id();
+        $result_one_years = Model_Electric::selectElectricData($str_id, $oneYearsdate_st, $oneYearsdate_end);
+        $result_two_years=array();
+        if(!is_null($secondGraphFlg)){
+            $result_two_years = Model_Electric::selectElectricData($str_id, $twoYearsdate_st, $twoYearsdate_end);
+            $checkedFlg = 1;
+        }else{
+            $checkedFlg = 0;
+        }
+        $result = self::convertDataForYear($result_one_years,$result_two_years,$oneYearsdate_st,$twoYearsdate_st,$checkedFlg);
+
+        return array(
+            'graph_data' => $result['result'],
+            'target_date_1' => $oneyeardate,
+            'target_date_2' => $twoyeardate,
+            'checked_flg' => $checkedFlg,
+            'total_set_1' => $result['total_one_year'],
+            'total_set_2' => $result['total_two_year'],
+        );
+    }
+
+    //１日分のデータをグラフを表示させれるように整理する
+    private static function onedaygraphdata($result) {
+        $row = 0;
+        $data = array();
+        $count = array();
+        $total = 0;
+        for ($i = 0; $i < 24; $i++) {
+            $data [$i] = 0;
+            $count[$i] = 0;
+        }
+        //時間でのデータ整理
+        while ($row < count($result)) {
+            $date = new Datetime($result[$row]['electric_at']);
+            $hour = $date->format('G');
+            $kw = $result[$row]['electric_kw'];
+            //時間毎にデータを格納
+            ++$count[$hour];
+            $data[$hour] = $data[$hour] + $kw;
+            ++$row;
+        }
+        //平均値を取得
+        $i = 0;
+        while ($i < count($count)) {
+            if (!$count[$i] == 0) {
+                $data[$i] = (int)($data[$i] / $count[$i]);
+            }
+            ++$i;
+        }
+        $i1 = 0;
+        while ($i1 < count($data)) {
+            $resultoneday[$i1 + 1] = $data[$i1];
+            ++$i1;
+        }
+
+        for ($i = 0; $i <= 24; ++$i) {
+            if ($i == 0) {
+                $onedaydata[] = array('', '電力量');
+            } else {
+                $stringtime = $i - 1 . "h";
+                $onedaydata[] = array($stringtime, $resultoneday[$i]);
+                $total += (int)$resultoneday[$i];
+            }
+        }
+
+        return array(
+            'result' => $onedaydata,
+            'total' => $total
+            );
+    }
+
+    /**
+     * 2週間分のデータをグラフ表示用に変換
+     * @access 1週間分のデータ
+     * @access 2週間前から～１週間前までのデータ
+     * @access 指定された日時
+     * @return グラフ表示用配列
+     */
+    public static function convertDataForWeek($result_one_week_ago,$result_two_week_ago,$targetdate1,$targetdate2){
+
+        //合計値用
+        $totalOneWeek = 0;
+        $totalTwoWeek = 0;
+
+        //一週間分の日付
+        $date1Array = array(
+            array("",),
+            array(date('Y-m-d',strtotime("-6 days $targetdate1")),array()),
+            array(date('Y-m-d',strtotime("-5 days $targetdate1")),array()),
+            array(date('Y-m-d',strtotime("-4 days $targetdate1")),array()),
+            array(date('Y-m-d',strtotime("-3 days $targetdate1")),array()),
+            array(date('Y-m-d',strtotime("-2 days $targetdate1")),array()),
+            array(date('Y-m-d',strtotime("-1 days $targetdate1")),array()),
+            array(date('Y-m-d',strtotime($targetdate1)),array()),
+        );
+
+        $date2Array = array(
+            array("",),
+            array(date('Y-m-d',strtotime("-6 days $targetdate2")),array()),
+            array(date('Y-m-d',strtotime("-5 days $targetdate2")),array()),
+            array(date('Y-m-d',strtotime("-4 days $targetdate2")),array()),
+            array(date('Y-m-d',strtotime("-3 days $targetdate2")),array()),
+            array(date('Y-m-d',strtotime("-2 days $targetdate2")),array()),
+            array(date('Y-m-d',strtotime("-1 days $targetdate2")),array()),
+            array(date('Y-m-d',strtotime($targetdate2)),array()),
+        );
+
+        //計算処理軽減のため抽出結果を整形
+        foreach($result_one_week_ago as $tmpData){
+            foreach($date1Array as $key=>$search){
+                if($key == 0){continue;}
+                if(strpos($tmpData['electric_at'],$search[0]) !== false){
+                    array_push($date1Array[$key][1],$tmpData);
+                }
+            }
+        }
+        foreach($result_two_week_ago as $tmpData){
+            foreach($date2Array as $key=>$search){
+                if($key == 0){continue;}
+                if(strpos($tmpData['electric_at'],$search[0]) !== false){
+                    array_push($date2Array[$key][1],$tmpData);
+                }
+            }
+        }
+
+        //結果格納用配列の初期化
+        $result1 = self::initResultArrayForWeek($date1Array);
+        $result2 = self::initResultArrayForWeek($date2Array);
+
+        //計算用配列を取得
+        $calcArray = self::getCalcArrayForWeekData();
+
+        //平均値算出用の配列
+        $countArray = $result1;
+
+        //日毎の電力計算処理
+        foreach($date1Array as $index=>$tmpArray){
+            if($index == 0){continue;}
+            $targetDate = $tmpArray[0];
+            foreach($tmpArray[1] as $calcTargetData ){
+                foreach($calcArray as $calcData){
+                        $startDatetime = strtotime($targetDate.' '.$calcData['start_time']);
+                        $endtDatetime = strtotime($targetDate.' '.$calcData['end_time']);
+                        $targetTime = strtotime($calcTargetData['electric_at']);
+                        if(($targetTime >= $startDatetime)&&($targetTime <= $endtDatetime)){
+                            $result1[$calcData['index']][$index] += intVal($calcTargetData['electric_kw']);
+                            $countArray[$calcData['index']][$index]++;
+                        }
+                }
+            }
+        }
+        //平均値算出
+        foreach($countArray as $index=>$arrayData){
+            if($index == 0){continue;}
+            foreach($arrayData as $key=>$data){
+                if($key == 0){continue;}
+                if($data == 0){continue;}
+                $result1[$index][$key] = (int)($result1[$index][$key] / $data);
+                $totalOneWeek += (int)$result1[$index][$key];
+            }
+        }
+
+        //平均値算出用の配列
+        $countArray = $result2;
+        //日毎の電力計算処理
+        foreach($date2Array as $index=>$tmpArray){
+            if($index == 0){continue;}
+            $targetDate = $tmpArray[0];
+            foreach($tmpArray[1] as $calcTargetData ){
+                foreach($calcArray as $calcData){
+                        $startDatetime = strtotime($targetDate.' '.$calcData['start_time']);
+                        $endtDatetime = strtotime($targetDate.' '.$calcData['end_time']);
+                        $targetTime = strtotime($calcTargetData['electric_at']);
+                        if(($targetTime >= $startDatetime)&&($targetTime <= $endtDatetime)){
+                            $result2[$calcData['index']][$index] += intVal($calcTargetData['electric_kw']);
+                            $countArray[$calcData['index']][$index]++;
+                        }
+                    }
+            }
+        }
+
+        //平均値算出
+        foreach($countArray as $index=>$arrayData){
+            if($index == 0){continue;}
+            foreach($arrayData as $key=>$data){
+                if($key == 0){continue;}
+                if($data == 0){continue;}
+                $result2[$index][$key] = (int)($result2[$index][$key] / $data);
+                $totalTwoWeek += (int)$result1[$index][$key];
+            }
+        }
+
+        return array(
+            'one_week' => $result1,
+            'total_one_week' => $totalOneWeek,
+            'two_week' => $result2,
+            'total_two_week' => $totalTwoWeek,
+                );
+    }
+
+    /**
+     * 2ヶ月分のデータをグラフ表示用に変換
+     * @access 1ヶ月分のデータ
+     * @access 2ヶ月から～１ヶ月までのデータ
+     * @access 指定された日時
+     * @return グラフ表示用配列
+     */
+    public static function convertDataForMonth($result_one_month_ago,$result_two_month_ago,$month_st,$month_end,$month_ago_st,$month_ago_end,$checkedFlg){
+
+        //合計値用
+        $totalOneMonth = 0;
+        $totalTwoMonth = 0;
+
+        $day = date('j',strtotime($month_st));
+        $end1 = date('j',strtotime($month_end));
+        $end2 = date('j',strtotime($month_ago_end));
+        $end = 0;
+        if(intVal($end1) > intVal($end2)){
+            $end = $end1;
+        }else{
+            $end = $end2;
+        }
+
+        //date1Arrayの各要素の配列の0番目の要素が日付、1番目は当月、2番目は先月の電力量用
+        if($checkedFlg){
+            $date1Array = array(
+                array("",date('n',strtotime($month_st))."月電力量",date('n',strtotime($month_ago_st))."月電力量"),
+            );
+            for($i=$day;$i <= $end;$i++){
+                array_push($date1Array,array("$i",0,0));
+            }
+        }else{
+            $date1Array = array(
+                array("",date('n',strtotime($month_st))."月電力量"),
+            );
+            for($i=$day;$i <= $end;$i++){
+                array_push($date1Array,array("$i",0));
+            }
+        }
+
+        //計算処理軽減のため抽出結果を整形
+        $targetDate1 = date('Y-m-d',strtotime($month_st));
+        $targetDate2 = date('Y-m-d',strtotime($month_ago_st));
+        foreach($date1Array as $index=>$date){
+            if($index == 0){ continue;}
+            //平均値計算用
+            $count1 = 0;
+            $count2 = 0;
+
+            foreach($result_one_month_ago as $tmpData1){
+                if(strpos($tmpData1['electric_at'],$targetDate1) !== FALSE){
+                   $count1++;
+                   $date1Array[$index][1] += intVal($tmpData1['electric_kw']);
+               }
+            }
+
+            foreach($result_two_month_ago as $tmpData2){
+               if(strpos($tmpData2['electric_at'],$targetDate2) !== FALSE){
+                   $count2++;
+                   $date1Array[$index][2] += intVal($tmpData2['electric_kw']);
+               }
+            }
+
+            if($count1 > 0){
+                $date1Array[$index][1] = (int)($date1Array[$index][1] / $count1);
+                $totalOneMonth += (int)$date1Array[$index][1];
+            }
+            if($count2 > 0){
+                $date1Array[$index][2] = (int)($date1Array[$index][2] / $count2);
+                $totalTwoMonth += (int)$date1Array[$index][2];
+            }
+
+            $targetDate1 = date('Y-m-d',strtotime('+1 days'.$targetDate1));
+            $targetDate2 = date('Y-m-d',strtotime('+1 days'.$targetDate2));
+        }
+
+        return array(
+            'result' => $date1Array,
+            'total_one_month' => $totalOneMonth,
+            'total_two_month' => $totalTwoMonth,
+        );
+    }
+
+    /**
+     * 2年分のデータをグラフ表示用に変換
+     * @access 1年分のデータ
+     * @access 2年前から～１年前までのデータ
+     * @return グラフ表示用配列
+     */
+    public static function convertDataForYear($result_one_years,$result_two_years,$oneYearsdate_st,$twoYearsdate_st,$checkedFlg){
+
+        $totalOneYear = 0;
+        $totalTwoYear = 0;
+
+        //dateArrayの各要素の配列の0番目の要素が日付、1番目は当年、2番目は前年の電力量用
+        if($checkedFlg){
+            $dateArray = array(
+                array("",date('Y',strtotime($oneYearsdate_st))."年電力量",date('Y',strtotime($twoYearsdate_st))."年電力量"),
+            );
+            for($i = 1;$i <= 12;$i++){
+                if($i < 10){
+                    $i = "0".$i;
+                }
+                array_push($dateArray,array("$i",0,0));
+            }
+        }else{
+            $dateArray = array(
+                array("",date('Y',strtotime($oneYearsdate_st))."年電力量"),
+            );
+            for($i = 1;$i <= 12;$i++){
+                if($i < 10){
+                    $i = "0".$i;
+                }
+                array_push($dateArray,array("$i",0));
+            }
+        }
+
+        //平均値計算用配列
+        $calcArray = $dateArray;
+
+        //電力量計算
+        foreach($result_one_years as $tmpData){
+            $month = date('m',strtotime($tmpData['electric_at']));
+            foreach($dateArray as $index => $date){
+                if($index == 0){continue;}
+                if($month == $date[0]){
+                    $dateArray[$index][1] += intVal($tmpData['electric_at']);
+                    $calcArray[$index][1]++;
+                }
+            }
+        }
+
+        foreach($result_two_years as $tmpData){
+            $month = date('m',strtotime($tmpData['electric_at']));
+            foreach($dateArray as $index => $date){
+                if($index == 0){continue;}
+                if($month == $date[0]){
+                    $dateArray[$index][2] += intVal($tmpData['electric_at']);
+                    $calcArray[$index][2]++;
+                }
+            }
+        }
+
+        //平均値計算
+        foreach($calcArray as $index=>$arrayData){
+            if($index == 0){continue;}
+            foreach($arrayData as $key=>$count){
+                if($key == 0){continue;}
+                if($count == 0){continue;}
+                $dateArray[$index][$key] = (int)($dateArray[$index][$key] / $count);
+                if($key == 1){
+                    $totalOneYear += (int)$dateArray[$index][1];
+                }elseif($key == 2){
+                    $totalTwoYear += (int)$dateArray[$index][2];
+                }
+            }
+        }
+
+
+        return array(
+            'result' => $dateArray,
+            'total_one_year' => $totalOneYear,
+            'total_two_year' => $totalTwoYear,
+        );
+    }
+
+    /**
+     * 計算用の配列を取得する（週間データ用）
+     */
+    private static function getCalcArrayForWeekData(){
+        return array(
+            array(
+                'start_time' => "00:00:00",
+                'end_time' => "00:59:59",
+                'index' => 1,
+            ),
+            array(
+                'start_time' => "01:00:00",
+                'end_time' => "01:59:59",
+                'index' => 2,
+            ),
+            array(
+                'start_time' => "02:00:00",
+                'end_time' => "02:59:59",
+                'index' => 3,
+            ),
+            array(
+                'start_time' => "03:00:00",
+                'end_time' => "03:59:59",
+                'index' => 4,
+            ),
+            array(
+                'start_time' => "04:00:00",
+                'end_time' => "05:59:59",
+                'index' => 5,
+            ),
+            array(
+                'start_time' => "05:00:00",
+                'end_time' => "05:59:59",
+                'index' => 6,
+            ),
+            array(
+                'start_time' => "06:00:00",
+                'end_time' => "06:59:59",
+                'index' => 7,
+            ),
+            array(
+                'start_time' => "07:00:00",
+                'end_time' => "07:59:59",
+                'index' => 8,
+            ),
+            array(
+                'start_time' => "08:00:00",
+                'end_time' => "08:59:59",
+                'index' => 9,
+            ),
+            array(
+                'start_time' => "09:00:00",
+                'end_time' => "09:59:59",
+                'index' => 10,
+            ),
+            array(
+                'start_time' => "10:00:00",
+                'end_time' => "10:59:59",
+                'index' => 11,
+            ),
+            array(
+                'start_time' => "11:00:00",
+                'end_time' => "11:59:59",
+                'index' => 12,
+            ),
+            array(
+                'start_time' => "12:00:00",
+                'end_time' => "12:59:59",
+                'index' => 13,
+            ),
+            array(
+                'start_time' => "13:00:00",
+                'end_time' => "13:59:59",
+                'index' => 14,
+            ),
+            array(
+                'start_time' => "14:00:00",
+                'end_time' => "14:59:59",
+                'index' => 15,
+            ),
+            array(
+                'start_time' => "15:00:00",
+                'end_time' => "15:59:59",
+                'index' => 16,
+            ),
+            array(
+                'start_time' => "16:00:00",
+                'end_time' => "16:59:59",
+                'index' => 17,
+            ),
+            array(
+                'start_time' => "17:00:00",
+                'end_time' => "17:59:59",
+                'index' => 18,
+            ),
+            array(
+                'start_time' => "18:00:00",
+                'end_time' => "18:59:59",
+                'index' => 19,
+            ),
+            array(
+                'start_time' => "19:00:00",
+                'end_time' => "19:59:59",
+                'index' => 20,
+            ),
+            array(
+                'start_time' => "20:00:00",
+                'end_time' => "20:59:59",
+                'index' => 21,
+            ),
+            array(
+                'start_time' => "21:00:00",
+                'end_time' => "21:59:59",
+                'index' => 22,
+            ),
+            array(
+                'start_time' => "22:00:00",
+                'end_time' => "22:59:59",
+                'index' => 23,
+            ),
+            array(
+                'start_time' => "23:00:00",
+                'end_time' => "23:59:59",
+                'index' => 24,
+            ),
+        );
+
+    }
+
+    /* 週間ページのグラフ表示用配列の初期化 */
+    private static function initResultArrayForWeek($date1Array){
+        $firstindex = array();
+        $result = array();
+        foreach($date1Array as $date){
+            array_push($firstindex,$date[0]);
+        }
+        return array(
+            $firstindex,
+            array("0h",0,0,0,0,0,0,0),
+            array("1h",0,0,0,0,0,0,0),
+            array("2h",0,0,0,0,0,0,0),
+            array("3h",0,0,0,0,0,0,0),
+            array("4h",0,0,0,0,0,0,0),
+            array("5h",0,0,0,0,0,0,0),
+            array("6h",0,0,0,0,0,0,0),
+            array("7h",0,0,0,0,0,0,0),
+            array("8h",0,0,0,0,0,0,0),
+            array("9h",0,0,0,0,0,0,0),
+            array("10h",0,0,0,0,0,0,0),
+            array("11h",0,0,0,0,0,0,0),
+            array("12h",0,0,0,0,0,0,0),
+            array("13h",0,0,0,0,0,0,0),
+            array("14h",0,0,0,0,0,0,0),
+            array("15h",0,0,0,0,0,0,0),
+            array("16h",0,0,0,0,0,0,0),
+            array("17h",0,0,0,0,0,0,0),
+            array("18h",0,0,0,0,0,0,0),
+            array("19h",0,0,0,0,0,0,0),
+            array("20h",0,0,0,0,0,0,0),
+            array("21h",0,0,0,0,0,0,0),
+            array("22h",0,0,0,0,0,0,0),
+            array("23h",0,0,0,0,0,0,0),
+        );
+    }
+}

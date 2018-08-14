@@ -3,7 +3,7 @@
 /**
  *
  * 作成日：2017/07/17
- * 更新日：2017/12/23
+ * 更新日：2017/08/14
  * 作成者：戸田滉洋
  * 更新者：戸田滉洋
  *
@@ -25,7 +25,7 @@ class Controller_Sidebar extends Controller_admin_login {
      */
     public static function data() {
 
-
+        //月間目標値
         $monthdata = date('F');
         $month = strtolower($monthdata);
         $monthresult = Model_MonthTarget::getMT($month);
@@ -34,18 +34,25 @@ class Controller_Sidebar extends Controller_admin_login {
         }
         $monthcount = date('t');
         $monthone = 0;
-        if(isset($monthdate)){
+        if (isset($monthdate)) {
             $monthone = floor($monthdate / $monthcount);
-        }else{
+        } else {
             $monthdate = '-';
         }
         $electricMonth = Model_Electric::getSideBerData();
         $addMonth = Controller_Sidebar::addSideBarData($electricMonth);
+        //デマンド値取得
+        $demand_key = Model_BasicInfo::getDemandKey();
+        if (isset($demand_key['demand_alarm'])) {
+            $demandKey = $demand_key['demand_alarm'];
+        } else {
+            $demandKey = '-';
+        }
         $data = array();
         $data['month'] = $monthdate;
         $data['MToneday'] = $monthone;
         $data['electricMonth'] = $addMonth;
-
+        $data['demandKey'] = $demandKey;
         return $data;
     }
 
@@ -58,9 +65,9 @@ class Controller_Sidebar extends Controller_admin_login {
     private static function addSideBarData($electricMonth) {
 
         $var = 0;
-       foreach($electricMonth as $row){
-           $var = $var + $row['electric_kw'];
-       }
+        foreach ($electricMonth as $row) {
+            $var = $var + $row['electric_kw'];
+        }
         return $var;
     }
 

@@ -38,7 +38,6 @@
         </div>
     </div>
 <?php endforeach; ?>
-・コメント記載場所
 
 <h2 style="text-align:left">月間目標値</h2>
 <?php if (is_null($month) || is_null($month['month'])): ?>

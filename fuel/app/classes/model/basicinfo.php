@@ -68,7 +68,7 @@ class Model_BasicInfo extends \orm\Model {
     public static function createstore($data) {
 
         $query = Model_BasicInfo::forge()->set(array(
-            'str_na' => $data['str_na'],//店舗名
+            'str_na' => $data['str_na'], //店舗名
             'ep_id' => $data['ep_id'], //企業ID
             'pref_id' => $data['pref_id'], //都道府県
             'str_pos_code' => $data['str_pos_code'], //郵便番号
@@ -123,6 +123,10 @@ class Model_BasicInfo extends \orm\Model {
         $query->str_weather_region = $data->str_weather_region;
         $query->str_memo = $data->str_memo;
         $query->power_com_id = $data->power_com_id;
+        $query->str_ct_1 = $data->str_ct_1;
+        $query->str_ct_2 = $data->str_ct_2;
+        $query->str_vt_1 = $data->str_vt_1;
+        $query->str_vt_2 = $data->str_vt_2;
         $query->save();
         return $query;
     }
@@ -136,8 +140,8 @@ class Model_BasicInfo extends \orm\Model {
         return $data;
     }
 
-    public static function getStoreNameByEpId($epId){
-        $query ="SELECT str_id,str_na FROM BasicInfo WHERE ep_id = $epId";
+    public static function getStoreNameByEpId($epId) {
+        $query = "SELECT str_id,str_na FROM BasicInfo WHERE ep_id = $epId";
         $data = \DB::query($query)->execute()->as_array();
         return $data;
     }
@@ -156,9 +160,21 @@ class Model_BasicInfo extends \orm\Model {
         return $data;
     }
 
-    public static function getStrDataByStrId($strId){
-        $query ="SELECT * FROM BasicInfo WHERE str_id = $strId";
-        $data = \DB::query($query)->execute()->current();
+    public static function getStrDataByStrId($strId) {
+        $query = "SELECT * FROM BasicInfo WHERE str_id = $strId";
+        $data = DB::query($query)->execute()->current();
+        return $data;
+    }
+
+    /**
+     * サイドバーをデマンド値を表示
+     * @return data
+     */
+    public static function getDemandKey() {
+        $auth = Auth::instance();
+        $str_id = $auth->get_str_id();
+        $query = "SELECT demand_alarm FROM BasicInfo WHERE str_id = $str_id";
+        $data = DB::query($query)->execute()->current();
         return $data;
     }
 

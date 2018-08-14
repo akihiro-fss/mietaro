@@ -15,27 +15,26 @@
  * @package app
  * @extends Controller
  */
+class Controller_Electric_year extends Controller {
 
-class Controller_Electric_year extends Controller
-{
-  public function before()
-  {
-    //未ログインの場合、ログインページにリダイレクト
-    if(!Auth::check()){
-      Response::redirect('admin/login');
+    public function before() {
+        //未ログインの場合、ログインページにリダイレクト
+        if (!Auth::check()) {
+            Response::redirect('admin/login');
+        }
     }
-  }
-  public function action_index()
-  {
-    //テーマのインスタンス化
-    $theme=\Theme::forge();
-     //テーマにテンプレートのセット
-     $theme->set_template('template');
-     //テーマのテンプレートにタイトルをセット
-     $theme->get_template()->set('title','MIETARO');
-     //テーマのテンプレートにビューとページデータをセット
-     $theme->get_template()->set('content',$theme->view('electric/year'));         //テーマのテンプレートにビューとページデータをセット
-     $theme->get_template()->set('sidebar',$theme->view('sidebar'));
-     return $theme;
-  }
+
+    public function action_index() {
+        //テーマのインスタンス化
+        $theme = \Theme::forge();
+        //テーマにテンプレートのセット
+        $theme->set_template('template');
+        //テーマのテンプレートにタイトルをセット
+        $theme->get_template()->set('title', 'MIETARO');
+        //テーマのテンプレートにビューとページデータをセット
+        $theme->get_template()->set('content', $theme->view('electric/year'));         //テーマのテンプレートにビューとページデータをセット
+        $theme->get_template()->set('sidebar', $theme->view('sidebar'));
+        return $theme;
+    }
+
 }

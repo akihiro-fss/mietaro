@@ -2,7 +2,7 @@
 /**
  *
  * 作成日：2017/12/10
- * 更新日：2017/12/30
+ * 更新日：2018/08/14
  * 作成者：戸田滉洋
  * 更新者：戸田滉洋
  *
@@ -17,10 +17,10 @@
 ?>
 <h3 style="text-align:left">各種設定</h3>
 <?php echo '<div class="alert-error">' . Session::get_flash('error') . '</div>' ?>
-<ul class="nav nav-tabs">  
+<ul class="nav nav-tabs">
     <li class="nav-item"><a href="basic">店舗情報</a></li>
     <li class="nav-item"><a href="alarmValue">警報値・目標値設置</a></li>
-    <li class="nav-item"><a href="PastPerformance">導入前実績</a></li>
+    <li class="nav-item"><a href="pastperformance">導入前実績</a></li>
     <li class="nav-item"><a href="Enterprice">企業情報</a></li>
 </ul>
 <h2 style="text-align:left">導入前実績値</h2>
@@ -331,4 +331,3 @@
     <?php endif; ?>
 </div>
 <?php echo Form::close(); ?>
-

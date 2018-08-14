@@ -42,8 +42,12 @@ class Controller_BasicInfo_basic extends Controller {
                     Input::post('longitude') == null or
                     Input::post('str_email_addres') == null or
                     Input::post('str_memo') == null or
-                    Input::post('str_weather_region') ==null or
-                    Input::post('power_com_id') == null
+                    Input::post('str_weather_region') == null or
+                    Input::post('power_com_id') == null or
+                    Input::post('str_ct_1') == null or
+                    Input::post('str_ct_2') == null or
+                    Input::post('str_vt_1') == null or
+                    Input::post('str_vt_2') == null
             ) {
                 Session::set_flash('error', '入力されてない箇所があります');
                 Response::redirect('basicinfo/basic');
@@ -77,6 +81,10 @@ class Controller_BasicInfo_basic extends Controller {
             $data->str_weather_region = Input::post('str_weather_region');
             $data->str_memo = Input::post('str_memo');
             $data->power_com_id = Input::post('power_com_id');
+            $data->str_ct_1 = Input::post('str_ct_1');
+            $data->str_ct_2 = Input::post('str_ct_2');
+            $data->str_vt_1 = Input::post('str_vt_1');
+            $data->str_vt_2 = Input::post('str_vt_2');
             $updatestore = Model_BasicInfo::strupdate($str_id, $data);
             //更新が出来たかどうか確認するモジュールが必要である
             if ($updatestore) {

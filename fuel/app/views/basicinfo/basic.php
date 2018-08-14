@@ -24,7 +24,7 @@
 <ul class="nav nav-tabs">
     <li class="nav-item"><a href="basic">店舗情報</a></li>
     <li class="nav-item"><a href="alarmValue">警報値・目標値設置</a></li>
-    <li class="nav-item"><a href="PastPerformance">導入前実績</a></li>
+    <li class="nav-item"><a href="pastperformance">導入前実績</a></li>
     <li class="nav-item"><a href="EnterPrice">企業情報</a></li>
 </ul>
 <h2 style="text-align:left">店舗情報</h2>
@@ -147,9 +147,9 @@
                     <label class="control-label" for="str_ct">CT比</label>
                 </th>
                 <td>
-                    <?php echo "1次側: " . $row->str_ct_1; ?>
+                    <?php echo "1次側: " . Form::input('str_ct_1', $row->str_ct_1, array('type' => 'text', 'size' => 40)); ?>
                     </br>
-                    <?php echo "2次側: " . $row->str_ct_2; ?>
+                    <?php echo "2次側: " . Form::input('str_ct_2', $row->str_ct_2, array('type' => 'text', 'size' => 40)); ?>
                     <?php $str_ct = $row->str_ct_1 / $row->str_ct_2; ?>
                 </td>
             </tr>
@@ -158,9 +158,9 @@
                     <label class="control-label" for="str_vt">VT比</label>
                 </th>
                 <td>
-                    <?php echo "1次側: " . $row->str_vt_1; ?>
+                    <?php echo "1次側: " . Form::input('str_vt_1', $row->str_vt_1, array('type' => 'text', 'size' => 40)); ?>
                     </br>
-                    <?php echo "2次側: " . $row->str_vt_2; ?>
+                    <?php echo "2次側: " . Form::input('str_vt_2', $row->str_vt_2, array('type' => 'text', 'size' => 40)); ?>
                     <?php $str_vt = $row->str_vt_1 / $row->str_vt_2; ?>
                 </td>
             </tr>

@@ -22,9 +22,8 @@
 
 <h5 style="text-align: center"><?php echo Html::anchor('top/news', 'NEWS'); ?></h5>
 <h5 style="text-align: center"><?php echo Html::anchor('top/show', '履歴参照'); ?></h5>
-<h5 style="text-align: center"><?php echo Html::anchor('BasicInfo/storeData', '店舗'); ?></h5>
-<h5 style="text-align: center"><?php echo Html::anchor('top/blankfile', '検証'); ?></h5>
-<h5 style="text-align: center"><?php echo Html::anchor('top/blankfile', '設置事業所一覧'); ?></h5>
+<h5 style="text-align: center"><?php echo Html::anchor('basicinfo/storedata', '店舗'); ?></h5>
+<h5 style="text-align: center"><?php echo Html::anchor('electric/yearcompaire', '検証'); ?></h5>
 <h5 style="text-align: center"><?php echo Html::anchor('top/blankfile', '節電ツール'); ?></h5>
 <table frame="box" style="text-align: center">
     <tr>
@@ -75,7 +74,7 @@
     </tr>
     <tr>
         <td>
-            <?php echo $side['electricMonth'] ?>
+            <?php echo $side['electricMonth']; ?>
         </td>
     </tr>
     <tr>
@@ -105,27 +104,7 @@
     </tr>
     <tr>
         <td>
-            表示できない
-        </td>
-    </tr>
-    <tr>
-        <th>
-            今月の警報回数
-        </th>
-    </tr>
-    <tr>
-        <td>
-            表示できない
-        </td>
-    </tr>
-    <tr>
-        <th>
-            今月の警報超過回数
-        </th>
-    </tr>
-    <tr>
-        <td>
-            表示できない
+            <?php echo $side['demandKey']; ?>
         </td>
     </tr>
 </table>

@@ -2,7 +2,7 @@
 /**
  *
  * 作成日：2017/8/11
- * 更新日：2017/12/30
+ * 更新日：2017/1/23
  * 作成者：戸田滉洋
  * 更新者：丸山　隼
  *
@@ -10,14 +10,15 @@
 /**
  * The Top Electric.
  *
- * 年間データグラフの表示
+ * 月間グラフ表示画面
  * @package app
  * @extends Views
  */
 ?>
+
 <?php
-$dataArray = Model_Electric::yeardata();
-$year = json_encode($dataArray['graph_data']);
+$dataArray = Model_Electric::monthdaydata();
+$month = json_encode($dataArray['month_data']);
 $targetDate1 = json_encode($dataArray['target_date_1']);
 $targetDate2 = json_encode($dataArray['target_date_2']);
 $checkedFlg = json_encode($dataArray['checked_flg']);
@@ -34,12 +35,15 @@ $totalSet2 = json_encode($dataArray['total_set_2']);
     <li class="nav-item"><a href="analysis">分析用</a></li>
 </ul>
 
+<?php echo '<div class="alert-error">' . Session::get_flash('error') . '</div>' ?>
+<?php echo '<div class="alert-success">' . Session::get_flash('success') . '</div>' ?>
+
 <?php echo Form::open(array('name' => 'search', 'method' => 'post', 'class' => 'form-horizontal')); ?>
 <table>
-<tr><th align="left">指定した日付の年の</br>使用電力情報が表示されます</th><th></tr></tr>
+<tr><th align="left">指定した日付の月の</br>使用電力情報が表示されます</th><th></tr></tr>
 <tr>
     <th valign="top">
-        <?php echo Form::input('oneyeardate', 'oneyeardate', array('type' => 'date')); ?>
+        <?php echo Form::input('onemonthdate', 'onemonthdate', array('type' => 'date')); ?>
         <?php echo Form::submit('submit', '決定', array('class' => 'btn btn-primary')); ?>
     </th>
     <td>
@@ -56,7 +60,7 @@ $totalSet2 = json_encode($dataArray['total_set_2']);
 </tr>
 <tr>
     <th valign="top">
-        <?php echo Form::input('twoyeardate', 'twoyeardate', array('type' => 'date')); ?><input id="dummy_button" type="submit" class="btn btn-ptimary">
+        <?php echo Form::input('twomonthdate', 'twomonthdate', array('type' => 'date')); ?><input id="dummy_button" type="submit" class="btn btn-ptimary">
         <script>
             $("#dummy_button").css("visibility","hidden");
         </script>
@@ -75,55 +79,44 @@ $totalSet2 = json_encode($dataArray['total_set_2']);
 
 <div id="chart"></div>
 
-<!-- 日付データの保持 -->
-<input type="hidden" id="param_date_1" name="param_date_1" value="">
-<input type="hidden" id="param_date_2" name="param_date_2" value="">
+<form method="post" name="monthinfo" id="monthinfo" action="monthinfo" >
+    <input type="hidden" id="param_date_1" name="param_date_1" value="">
+    <input type="hidden" id="param_date_2" name="param_date_2" value="">
 
-<ul class="nav nav-tabs" style="border-bottom:none;">
-	<li class="nav-item"><a href="sample">気温グラフを表示</a></li>
-	<li class="nav-item"><a id="yeardemand">デマンドグラフを表示</a></li>
-	<li class="nav-item"><a id="yearinfo">詳細表を表示</a></li>
-</ul>
+    <ul class="nav nav-tabs" style="border-bottom:none;">
+        <li class="nav-item"><a href="sample">デマンドグラフを表示</a></li>
+        <li class="nav-item"><a id="monthinfo">詳細表を表示</a></li>
+    </ul>
+</form>
 
 <script>
     var targetDate1 = <?php echo $targetDate1; ?>;
     var targetDate2 = <?php echo $targetDate2; ?>;
-    console.log(targetDate2);
-    $('#form_oneyeardate').val(targetDate1);
-    $('#form_twoyeardate').val(targetDate2);
-
-    var year = <?php echo $year; ?>;
+    $('#form_onemonthdate').val(targetDate1);
+    $('#form_twomonthdate').val(targetDate2);
+    var month = <?php echo $month; ?>;
 
     /* チェックボックス */
     var checked_flg = <?php echo $checkedFlg; ?>;
 
-    //詳細ページに遷移
-    $('#yearinfo').click(function () {
-       var param1 = $('#form_oneyeardate').val();
-       var param2 = $('#form_oneyeardate').val();
-       var data={'param_date_1':param1,'param_date_2':param2};
-       postForm('yearinfo',data);
+    $('#monthinfo').click(function(){
+        $('#param_date_1').val($('#form_onemonthdate').val());
+        $('#param_date_2').val($('#form_twomonthdate').val());
+
+        $('#monthinfo').submit();
+
     });
 
-    //デマンドページに遷移
-    $('#yeardemand').click(function () {
-        var param1 = $('#form_oneyeardate').val();
-        var param2 = $('#form_oneyeardate').val();
-        var data={'param_date_1':param1,'param_date_2':param2};
-        postForm('yeardemand',data);
-    });
-
-    /* チャート表示処理 */
     if(checked_flg){
-        //チェックボックスのデフォルト設定
+        //チェックフラグのデフォルト設定
         $('input[name="second_graph_flag"]').prop('checked', true);
-        //チャート表示
+        /* チャート表示処理 */
         google.charts.load('current', {'packages': ['corechart']});
         google.setOnLoadCallback(drawChart);
         function drawChart() {
-            var data = new google.visualization.arrayToDataTable(year);
+            var data = new google.visualization.arrayToDataTable(month);
             var options = {
-                "title": "年間使用電力量",
+                "title": "デマンドグラフ",
                 "titleTextStyle": {
                     "fontSize": 20
                 },
@@ -131,24 +124,24 @@ $totalSet2 = json_encode($dataArray['total_set_2']);
                     title: 'kw/h',
                 },
                 hAxis: {
-                    title: 'month'
+                    title: 'day'
                 },
-                "width": 1000,
+                "width": 900,
                 "height": 600,
-                seriesType: 'bars',
-                series: {1: {type: 'line'}}
+                seriesType: 'line',
+                series: {0: {type: 'bars'}}
             };
             var chart = new google.visualization.ComboChart(document.getElementById('chart'));
             chart.draw(data, options);
         }
     }else{
-        //チャート表示処理
+        /* チャート表示処理 */
         google.charts.load('current', {'packages': ['corechart']});
         google.setOnLoadCallback(drawChart);
         function drawChart() {
-            var data = new google.visualization.arrayToDataTable(year);
+            var data = new google.visualization.arrayToDataTable(month);
             var options = {
-                "title": "年間使用電力量",
+                "title": "デマンドグラフ",
                 "titleTextStyle": {
                     "fontSize": 20
                 },
@@ -156,22 +149,13 @@ $totalSet2 = json_encode($dataArray['total_set_2']);
                     title: 'kw/h',
                 },
                 hAxis: {
-                    title: 'month'
+                    title: 'day'
                 },
-                "width": 1000,
+                "width": 900,
                 "height": 600,
             };
             var chart = new google.visualization.ColumnChart(document.getElementById('chart'));
             chart.draw(data, options);
-        }
+    		}
     }
-    //POST送信用
-    var postForm = function(url, data) {
-        var $form = $('<form/>', {'action': url, 'method': 'post'});
-        for(var key in data) {
-                $form.append($('<input/>', {'type': 'hidden', 'name': key, 'value': data[key]}));
-        }
-        $form.appendTo(document.body);
-        $form.submit();
-    };
 </script>

@@ -15,7 +15,7 @@
  * @package app
  * @extends Controller
  */
-class Controller_Electric_oneDay extends Controller {
+class Controller_Electric_oneDayDemand extends Controller {
 
     public function before() {
         //未ログインの場合、ログインページにリダイレクト
@@ -34,7 +34,7 @@ class Controller_Electric_oneDay extends Controller {
         //テーマのテンプレートにタイトルをセット
         $theme->get_template()->set('title', 'MIETARO');
         //テーマのテンプレートにビューとページデータをセット
-        $theme->get_template()->set('content', $theme->view('electric/oneday', $oneday)->set('onedayData',$oneday));
+        $theme->get_template()->set('content', $theme->view('electric/onedaydemand')->set('onedayData',$oneday));
         //テーマのテンプレートにビューとページデータをセット
         $theme->get_template()->set('sidebar', $theme->view('sidebar'));
         return $theme;

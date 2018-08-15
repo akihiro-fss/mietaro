@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * 作成日：2017/08/11
+ * 作成日：2018/08/14
  * 更新日：2018/08/15
  * 作成者：戸田滉洋
  * 更新者：戸田滉洋
@@ -13,7 +13,6 @@
  * @extends Views
  */
 ?>
-
 <h3><?php echo Session::get_flash('success', 'ようこそ' . Auth::get_screen_name() . 'さん'); ?></h3>
 <ul class="nav nav-tabs">
     <li class="nav-item"><a href="oneDay">1日</a></li>
@@ -70,10 +69,9 @@
 
 <ul class="nav nav-tabs" style="border-bottom:none;">
 	<li class="nav-item"><a href="sample">気温グラフを表示</a></li>
-	<li class="nav-item"><a id="onedaydemand">デマンドグラフを表示</a></li>
+	<li class="nav-item"><a id="oneday">電力グラフを表示</a></li>
 	<li class="nav-item"><a id="onedayinfo">詳細表を表示</a></li>
 </ul>
-
 
 ピンポイント天気予報　※事業所周辺の天気予報
 <table id="weather_table" class="table table-bordered">
@@ -118,7 +116,7 @@
     $('#form_onedaydate').val(targetDate1);
     $('#form_twodaydate').val(targetDate2);
 
-    //詳細ページに遷移
+  //詳細ページに遷移
     $('#onedayinfo').click(function () {
        var param1 = $('#form_onedaydate').val();
        var param2 = $('#form_twodaydate').val();
@@ -126,26 +124,27 @@
        postForm('onedayinfo',data);
     });
 
-    //デマンドページに遷移
-    $('#onedaydemand').click(function () {
+    //電力量ページに遷移
+    $('#oneday').click(function () {
         var param1 = $('#form_onedaydate').val();
         var param2 = $('#form_twodaydate').val();
         var param3 = checked_flg;
         var data={'param_date_1':param1,'param_date_2':param2,'second_graph_flag':param3};
-        postForm('onedaydemand',data);
+        postForm('oneday',data);
     });
+
 
     if (checked_flg) {
         //チェックフラグのデフォルト設定
         $('input[name="second_graph_flag"]').prop('checked', true);
         //チャート表示処理
-        var chartdata = convertArray(oneday, yesterday, targetDate1, targetDate2, checked_flg);
+        var chartdata = convertArray(oneday_demand, yesterday_demand, targetDate1, targetDate2, checked_flg);
         google.charts.load('current', {'packages': ['corechart']});
         google.setOnLoadCallback(drawChart);
         function drawChart() {
             var data = new google.visualization.arrayToDataTable(chartdata);
             var options = {
-                "title": "使用電力量",
+                "title": "デマンドグラフ",
                 "titleTextStyle": {
                     "fontSize": 20
                 },
@@ -164,13 +163,13 @@
             chart.draw(data, options);
         }
     } else {
-        var chartdata = convertArray(oneday, yesterday, targetDate1, targetDate2, checked_flg);
+        var chartdata = convertArray(oneday_demand, yesterday_demand, targetDate1, targetDate2, checked_flg);
         google.charts.load('current', {'packages': ['corechart']});
         google.setOnLoadCallback(drawChart);
         function drawChart() {
             var data = new google.visualization.arrayToDataTable(chartdata);
             var options = {
-                "title": "使用電力量",
+                "title": "デマンドグラフ",
                 "titleTextStyle": {
                     "fontSize": 20
                 },
@@ -192,36 +191,36 @@
     getWeatherInfo(strDataArray.latitude, strDataArray.longitude);
 
     /* 当日と前日のデータをマージ */
-    function convertArray(oneday, yesterday, targetDate1, targetDate2, checked_flg) {
+    function convertArray(oneday_demand, yesterday_demand, targetDate1, targetDate2, checked_flg) {
         var arrayData = [];
-        if (yesterday.length > 0) {
-            $.each(oneday,
+        if (yesterday_demand.length > 0) {
+            $.each(oneday_demand,
                     function (index, data) {
                         if (index == 0) {
                             arrayData.push(["", targetDate2, targetDate1])
                         } else {
-                            arrayData.push([oneday[index][0], yesterday[index][1], oneday[index][1]]);
+                            arrayData.push([oneday_demand[index][0], yesterday_demand[index][1], oneday_demand[index][1]]);
                         }
                     }
             );
         } else {
             if (checked_flg) {
-                $.each(oneday,
+                $.each(oneday_demand,
                         function (index, data) {
                             if (index == 0) {
                                 arrayData.push(["", targetDate2, targetDate1])
                             } else {
-                                arrayData.push([oneday[index][0], 0, oneday[index][1]]);
+                                arrayData.push([oneday_demand[index][0], 0, oneday_demand[index][1]]);
                             }
                         }
                 );
             } else {
-                $.each(oneday,
+                $.each(oneday_demand,
                         function (index, data) {
                             if (index == 0) {
                                 arrayData.push(["", targetDate1])
                             } else {
-                                arrayData.push([oneday[index][0], oneday[index][1]]);
+                                arrayData.push([oneday_demand[index][0], oneday_demand[index][1]]);
                             }
                         }
                 );
@@ -394,7 +393,6 @@
         } else {
             $('#weather_date').append('<td colspan="8">' + oneMonth + '/' + oneDate + '</br>' + oneWeek + '</td>');
         }
-
     }
 
     //POST送信用
@@ -406,5 +404,4 @@
         $form.appendTo(document.body);
         $form.submit();
     };
-
 </script>

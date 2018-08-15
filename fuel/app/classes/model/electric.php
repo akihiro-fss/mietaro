@@ -36,91 +36,150 @@ class Model_Electric extends \orm\Model {
         ),
     );
 
-    //DBデータ取得
+    /**
+     * DBデータ取得
+     */
     private static function DbData($str_id, $start, $end) {
         $sql = "SELECT electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
         $query = \DB::query($sql)->execute();
         return $query;
     }
 
-    //SELECT用メソッド
+    /**
+     * SELECT用メソッド
+     */
     private static function selectElectricData($str_id, $start, $end) {
         $sql = "SELECT electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
         return \DB::query($sql)->execute()->as_array();
     }
-    //月間データ用SELECT
+
+    /**
+     * 平均値計算用SELECTメソッド
+     */
+    private static function selectAverageElectricData($str_id, $start, $end) {
+        $sql = "SELECT AVG(electric_kw) as 'avg_electric_kw' FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
+        return \DB::query($sql)->execute()->current();
+    }
+    /**
+     * 平均値計算用(demand_kw用)SELECTメソッド
+     */
+    private static function selectAverageDemandData($str_id, $start, $end) {
+        $sql = "SELECT AVG(demand_kw) as 'avg_demand_kw' FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
+        return \DB::query($sql)->execute()->current();
+    }
+
+    /**
+     * 月間データ用SELECT
+     */
     private static function selectElectricDataForMonth($str_id, $start, $end) {
         $sql = "SELECT electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id AND electric_at >= '$start' AND electric_at < '$end'";
         return \DB::query($sql)->execute()->as_array();
     }
 
-    //１日分のデータ取得
+    /**
+     * 2018-08-12
+     * １日の電力量表示データ取得メソッド
+     * （v2 1h->30minでグラフ表示できるように）
+     */
     public static function onedaydata() {
         $secondGraphFlg = Input::post('second_graph_flag');
         $onedaydate = date('Y-m-d');
         $twodaydate = '';
         if (Input::method() == 'POST') {
             $onedaydate = Input::post('onedaydate');
-            if($onedaydate == ""){
-                $onedaydate = date('Y-m-d');
+            if(empty($onedaydate)){
+                $onedaydate = Input::post('param_date_1');
+                if(empty($onedaydate)){
+                    $onedaydate = date('Y-m-d');
+                }
             }
             if($secondGraphFlg){
                 $twodaydate = Input::post('twodaydate');
-                if($twodaydate == ""){
-                    $twodaydate = date('Y-m-d', strtotime('-1 days'));
+                if(empty($twodaydate)){
+                    $twodaydate = Input::post('param_date_2');
+                    if(empty($twodaydate)){
+                        $twodaydate = date('Y-m-d');
+                    }
                 }
             }
-            $oneday_st = date('Y/m/d 00:00:00', strtotime($onedaydate));
+            $oneday_st = date('Y-m-d 00:00:00', strtotime($onedaydate));
             $oneday_end = date('Y/m/d 23:59:59', strtotime($onedaydate));
-            $yesterday_st = date('Y/m/d 00:00:00', strtotime($twodaydate));
-            $yesterday_end = date('Y/m/d 23:59:59', strtotime($twodaydate));
+            $twoday_st = date('Y/m/d 00:00:00', strtotime($twodaydate));
+            $twoday_end = date('Y/m/d 23:59:59', strtotime($twodaydate));
         } else {
             $oneday_st = date("Y/m/d 00:00:00");
             $oneday_end = date("Y/m/d 23:59:59");
-            $yesterday_st = date('Y/m/d 00:00:00', strtotime('-1 days'));
-            $yesterday_end = date('Y/m/d 23:59:59', strtotime('-1 days'));
+            $twoday_st = date('Y/m/d 00:00:00', strtotime('-1 days'));
+            $twoday_end = date('Y/m/d 23:59:59', strtotime('-1 days'));
         }
         //Authのインスタンス化
         $auth = Auth::instance();
         $str_id = $auth->get_str_id();
-        //１日分のデータの取得
-        $oneday = Model_Electric::DbData($str_id, $oneday_st, $oneday_end);
-        $onedayData = Model_Electric::onedaygraphdata($oneday);
-        $resultOneday = $onedayData['result'];
-        //昨日のデータ取得
+
+        //第一指定日の電力量データ取得
+        $result_oneday = self::calcOnedayAverageDate($str_id,$oneday_st);
+
+        //第二指定日の電力量データ取得
+        $result_twoday = array(
+            'result' => array(),
+            'total' => 0
+        );
+
         if(!is_null($secondGraphFlg)){
-            $yesterday = Model_Electric::DbData($str_id, $yesterday_st, $yesterday_end);
-            $yesterdayData = Model_Electric::onedaygraphdata($yesterday);
-            $resultYesterday = $yesterdayData['result'];
+            $tmp_result = self::calcOnedayAverageDate($str_id,$twoday_st);
+            $result_twoday = array(
+                'result' => $tmp_result['result'],
+                'total' => $tmp_result['total']
+            );
             $checkedFlg = 1;
-            $totalYesterDay = $yesterdayData['total'];
         }else{
-            $totalYesterDay = 0;
-            $resultYesterday = array();
             $checkedFlg = 0;
         }
 
+        //第一指定日のデマンドデータ取得
+        $result_demand_oneday = self::calcOnedayDemandAverageDate($str_id,$oneday_st);
 
+        //第二指定日のデマンドデータ取得
+        $result_demand_twoday = array(
+            'result' => array(),
+            'max_demand' => 0
+        );
+        if(!is_null($secondGraphFlg)){
+            $tmp_result = self::calcOnedayDemandAverageDate($str_id,$twoday_st);
+            $result_demand_twoday = array(
+                'result' => $tmp_result['result'],
+                'max_demand' => $tmp_result['max_demand']
+            );
+            $checkedFlg = 1;
+        }else{
+            $checkedFlg = 0;
+        }
 
         //店舗データ取得
         $strDataArray = Model_BasicInfo::getStrDataByStrId($str_id);
 
-        //一日分のデータを整理
+        //レスポンスデータを整理
         $resultsArray = array(
-                'str_id' => $str_id,
-                'str_data_array' => $strDataArray,
-                'target_date_1' => $onedaydate,
-                'target_date_2' => $twodaydate,
-                'checked_flg' => $checkedFlg,
-                'oneday' => $resultOneday,
-                'yesterday' => $resultYesterday,
-                'total_set_1' => $onedayData['total'],
-                'total_set_2' => $totalYesterDay,
-                );
+            'str_id' => $str_id,
+            'str_data_array' => $strDataArray,
+            'target_date_1' => $onedaydate,
+            'target_date_2' => $twodaydate,
+            'checked_flg' => $checkedFlg,
+            'oneday' => $result_oneday['result'],
+            'yesterday' => $result_twoday['result'],
+            'oneday_demand' => $result_demand_oneday['result'],
+            'yesterday_demand' => $result_demand_twoday['result'],
+            'total_set_1' => $result_oneday['total'],
+            'total_set_2' => $result_twoday['total'],
+            'max_demand_1' => $result_demand_oneday['max_demand'],
+            'max_demand_2' => $result_demand_twoday['max_demand'],
+        );
         return $resultsArray;
     }
 
-    //一週間分のデータ取得
+    /**
+     * 一週間分のデータ取得
+     */
     public static function weekdaydata() {
         $secondGraphFlg = Input::post('second_graph_flag');
         $weekdate = date('Y-m-d');
@@ -171,7 +230,9 @@ class Model_Electric extends \orm\Model {
         );
     }
 
-    //一ヶ月分のデータ取得
+    /**
+     * 一ヶ月分のデータ取得
+     */
     public static function monthdaydata() {
         $secondGraphFlg = Input::post('second_graph_flag');
         $onemonthdate = date('Y-m-d');
@@ -231,7 +292,9 @@ class Model_Electric extends \orm\Model {
         return $result_a_month;
     }
 
-    //一年分のデータ取得
+    /**
+     * 一年分のデータ取得
+     */
     public static function yeardata() {
         $secondGraphFlg = Input::post('second_graph_flag');
         $oneyeardate = date('Y-m-d');
@@ -279,54 +342,108 @@ class Model_Electric extends \orm\Model {
         );
     }
 
-    //１日分のデータをグラフを表示させれるように整理する
-    private static function onedaygraphdata($result) {
-        $row = 0;
-        $data = array();
-        $count = array();
-        $total = 0;
-        for ($i = 0; $i < 24; $i++) {
-            $data [$i] = 0;
-            $count[$i] = 0;
-        }
-        //時間でのデータ整理
-        while ($row < count($result)) {
-            $date = new Datetime($result[$row]['electric_at']);
-            $hour = $date->format('G');
-            $kw = $result[$row]['electric_kw'];
-            //時間毎にデータを格納
-            ++$count[$hour];
-            $data[$hour] = $data[$hour] + $kw;
-            ++$row;
-        }
-        //平均値を取得
-        $i = 0;
-        while ($i < count($count)) {
-            if (!$count[$i] == 0) {
-                $data[$i] = (int)($data[$i] / $count[$i]);
-            }
-            ++$i;
-        }
-        $i1 = 0;
-        while ($i1 < count($data)) {
-            $resultoneday[$i1 + 1] = $data[$i1];
-            ++$i1;
-        }
 
-        for ($i = 0; $i <= 24; ++$i) {
-            if ($i == 0) {
-                $onedaydata[] = array('', '電力量');
-            } else {
-                $stringtime = $i - 1 . "h";
-                $onedaydata[] = array($stringtime, $resultoneday[$i]);
-                $total += (int)$resultoneday[$i];
+    /**
+     * 指定日付の30分毎の電力量の平均値を計算し表示用配列に変換する
+     * @access datetime Y-m-d 00:00:0
+     * @return arrayobject
+     */
+    public static function calcOnedayAverageDate($str_id,$datetime){
+        $start = $datetime;
+        //配列のキーとなる値の初期化
+        $key = 0.5;
+        $count = 1;
+        //配列の初期化
+        $result_array = array(
+            array(
+                0=>'',
+                1=>'電力量'
+            )
+        );
+        //必要情報を取得するまで繰り返す（1日分の電力量データ30分毎の平均値）
+        $total = 0;
+        while(1){
+            //計算範囲から29分59秒足したものを範囲の終わりに設定する
+            $end = date("Y-m-d H:i:s",strtotime($start . "+29 minute +59 seconds"));
+            //平均値取得
+            $result = Model_Electric::selectAverageElectricData($str_id, $start, $end);
+            //配列を作成
+            $tmp_array = array(
+                0 => ($key * $count).'h',
+                1 => (int)$result['avg_electric_kw']
+            );
+            //合計値加算
+            $total += (int)$result['avg_electric_kw'];
+            //配列のキーを加算
+            $count++;
+            //結果用配列にプッシュ
+            array_push($result_array,$tmp_array);
+            //計算範囲をシフト
+            $start = date("Y-m-d H:i:s",strtotime($end . "+1 seconds"));
+            //計算範囲が次の日にシフトしていたら計算終了
+            if(date('Y-m-d',strtotime($start)) != date('Y-m-d',strtotime($datetime))){
+                break;
             }
         }
 
         return array(
-            'result' => $onedaydata,
-            'total' => $total
+            'result' => $result_array,
+            'total'  => $total
+        );
+    }
+
+    /**
+     * 指定日付の30分毎のデマンド値の平均値を計算し表示用配列に変換する
+     * @access datetime Y-m-d 00:00:0
+     * @return arrayobject
+     */
+    public static function calcOnedayDemandAverageDate($str_id,$datetime){
+        $start = $datetime;
+        //配列のキーとなる値の初期化
+        $key = 0.5;
+        $count = 1;
+        //配列の初期化
+        $result_array = array(
+            array(
+                0=>'',
+                1=>'電力量'
+            )
+        );
+        //必要情報を取得するまで繰り返す（1日分の電力量データ30分毎の平均値）
+        $total = 0;
+        $max = 0;
+        while(1){
+            //計算範囲から29分59秒足したものを範囲の終わりに設定する
+            $end = date("Y-m-d H:i:s",strtotime($start . "+29 minute +59 seconds"));
+            //平均値取得
+            $result = Model_Electric::selectAverageDemandData($str_id, $start, $end);
+            //配列を作成
+            $tmp_array = array(
+                0 => ($key * $count).'h',
+                1 => (int)$result['avg_demand_kw']
             );
+            //合計値加算
+            $total += (int)$result['avg_demand_kw'];
+            //最大値を保持
+            if($max <= (int)$result['avg_demand_kw']){
+                $max = (int)$result['avg_demand_kw'];
+            }
+            //配列のキーを加算
+            $count++;
+            //結果用配列にプッシュ
+            array_push($result_array,$tmp_array);
+            //計算範囲をシフト
+            $start = date("Y-m-d H:i:s",strtotime($end . "+1 seconds"));
+            //計算範囲が次の日にシフトしていたら計算終了
+            if(date('Y-m-d',strtotime($start)) != date('Y-m-d',strtotime($datetime))){
+                break;
+            }
+        }
+
+        return array(
+            'result' => $result_array,
+            'max_demand'  => $max
+        );
     }
 
     /**
@@ -786,6 +903,129 @@ class Model_Electric extends \orm\Model {
             array("21h",0,0,0,0,0,0,0),
             array("22h",0,0,0,0,0,0,0),
             array("23h",0,0,0,0,0,0,0),
+        );
+    }
+
+
+
+    /*
+     * １日分のデータ取得(使用しない)
+     */
+    public static function onedaydata_old() {
+        $secondGraphFlg = Input::post('second_graph_flag');
+        $onedaydate = date('Y-m-d');
+        $twodaydate = '';
+        if (Input::method() == 'POST') {
+            $onedaydate = Input::post('onedaydate');
+            if($onedaydate == ""){
+                $onedaydate = date('Y-m-d');
+            }
+            if($secondGraphFlg){
+                $twodaydate = Input::post('twodaydate');
+                if($twodaydate == ""){
+                    $twodaydate = date('Y-m-d', strtotime('-1 days'));
+                }
+            }
+            $oneday_st = date('Y/m/d 00:00:00', strtotime($onedaydate));
+            $oneday_end = date('Y/m/d 23:59:59', strtotime($onedaydate));
+            $yesterday_st = date('Y/m/d 00:00:00', strtotime($twodaydate));
+            $yesterday_end = date('Y/m/d 23:59:59', strtotime($twodaydate));
+        } else {
+            $oneday_st = date("Y/m/d 00:00:00");
+            $oneday_end = date("Y/m/d 23:59:59");
+            $yesterday_st = date('Y/m/d 00:00:00', strtotime('-1 days'));
+            $yesterday_end = date('Y/m/d 23:59:59', strtotime('-1 days'));
+        }
+        //Authのインスタンス化
+        $auth = Auth::instance();
+        $str_id = $auth->get_str_id();
+        //１日分のデータの取得
+        $oneday = Model_Electric::DbData($str_id, $oneday_st, $oneday_end);
+        $onedayData = Model_Electric::onedaygraphdata($oneday);
+        $resultOneday = $onedayData['result'];
+
+        //昨日のデータ取得
+        if(!is_null($secondGraphFlg)){
+            $yesterday = Model_Electric::DbData($str_id, $yesterday_st, $yesterday_end);
+            $yesterdayData = Model_Electric::onedaygraphdata($yesterday);
+            $resultYesterday = $yesterdayData['result'];
+            $checkedFlg = 1;
+            $totalYesterDay = $yesterdayData['total'];
+        }else{
+            $totalYesterDay = 0;
+            $resultYesterday = array();
+            $checkedFlg = 0;
+        }
+
+
+
+        //店舗データ取得
+        $strDataArray = Model_BasicInfo::getStrDataByStrId($str_id);
+
+        //一日分のデータを整理
+        $resultsArray = array(
+            'str_id' => $str_id,
+            'str_data_array' => $strDataArray,
+            'target_date_1' => $onedaydate,
+            'target_date_2' => $twodaydate,
+            'checked_flg' => $checkedFlg,
+            'oneday' => $resultOneday,
+            'yesterday' => $resultYesterday,
+            'total_set_1' => $onedayData['total'],
+            'total_set_2' => $totalYesterDay,
+        );
+        return $resultsArray;
+    }
+
+    /**
+     * １日分のデータをグラフを表示させれるように整理する
+     */
+    private static function onedaygraphdata($result) {
+        $row = 0;
+        $data = array();
+        $count = array();
+        $total = 0;
+        for ($i = 0; $i < 24; $i++) {
+            $data [$i] = 0;
+            $count[$i] = 0;
+        }
+        //時間でのデータ整理
+        while ($row < count($result)) {
+            $date = new Datetime($result[$row]['electric_at']);
+            $hour = $date->format('G');
+            $kw = $result[$row]['electric_kw'];
+            //時間毎にデータを格納
+            ++$count[$hour];
+            $data[$hour] = $data[$hour] + $kw;
+            ++$row;
+        }
+        //平均値を取得
+        $i = 0;
+        while ($i < count($count)) {
+            if (!$count[$i] == 0) {
+                $data[$i] = (int)($data[$i] / $count[$i]);
+            }
+            ++$i;
+        }
+        $i1 = 0;
+        while ($i1 < count($data)) {
+            $resultoneday[$i1 + 1] = $data[$i1];
+            ++$i1;
+        }
+
+        for ($i = 0; $i <= 24; ++$i) {
+            if ($i == 0) {
+                $onedaydata[] = array('', '電力量');
+            } else {
+                $stringtime = $i - 1 . "h";
+                $onedaydata[] = array($stringtime, $resultoneday[$i]);
+                $total += (int)$resultoneday[$i];
+            }
+        }
+
+        return array(
+            'result' => $onedaydata,
+            'total' => $total
         );
     }
 }

@@ -79,15 +79,15 @@ $totalSet2 = json_encode($dataArray['total_set_2']);
 
 <div id="chart"></div>
 
-<form method="post" name="monthinfo" id="monthinfo" action="monthinfo" >
-    <input type="hidden" id="param_date_1" name="param_date_1" value="">
-    <input type="hidden" id="param_date_2" name="param_date_2" value="">
+<!-- 日付データの保持 -->
+<input type="hidden" id="param_date_1" name="param_date_1" value="">
+<input type="hidden" id="param_date_2" name="param_date_2" value="">
 
-    <ul class="nav nav-tabs" style="border-bottom:none;">
-        <li class="nav-item"><a href="sample">デマンドグラフを表示</a></li>
-        <li class="nav-item"><a id="monthinfo">詳細表を表示</a></li>
-    </ul>
-</form>
+<ul class="nav nav-tabs" style="border-bottom:none;">
+	<li class="nav-item"><a href="sample">気温グラフを表示</a></li>
+	<li class="nav-item"><a id="monthdemand">デマンドグラフを表示</a></li>
+	<li class="nav-item"><a id="monthinfo">詳細表を表示</a></li>
+</ul>
 
 <script>
     var targetDate1 = <?php echo $targetDate1; ?>;
@@ -99,12 +99,20 @@ $totalSet2 = json_encode($dataArray['total_set_2']);
     /* チェックボックス */
     var checked_flg = <?php echo $checkedFlg; ?>;
 
-    $('#monthinfo').click(function(){
-        $('#param_date_1').val($('#form_onemonthdate').val());
-        $('#param_date_2').val($('#form_twomonthdate').val());
+  //詳細ページに遷移
+    $('#monthinfo').click(function () {
+       var param1 = $('#form_onemonthdate').val();
+       var param2 = $('#form_onemonthdate').val();
+       var data={'param_date_1':param1,'param_date_2':param2};
+       postForm('monthinfo',data);
+    });
 
-        $('#monthinfo').submit();
-
+    //デマンドページに遷移
+    $('#monthdemand').click(function () {
+        var param1 = $('#form_onemonthdate').val();
+        var param2 = $('#form_onemonthdate').val();
+        var data={'param_date_1':param1,'param_date_2':param2};
+        postForm('monthdemand',data);
     });
 
     if(checked_flg){
@@ -158,4 +166,13 @@ $totalSet2 = json_encode($dataArray['total_set_2']);
             chart.draw(data, options);
     		}
     }
+    //POST送信用
+    var postForm = function(url, data) {
+        var $form = $('<form/>', {'action': url, 'method': 'post'});
+        for(var key in data) {
+                $form.append($('<input/>', {'type': 'hidden', 'name': key, 'value': data[key]}));
+        }
+        $form.appendTo(document.body);
+        $form.submit();
+    };
 </script>

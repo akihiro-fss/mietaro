@@ -192,6 +192,30 @@
             </tr>
             <tr>
                 <th>
+                    <label class="control-label" for="electric_ba">契約電力量</label>
+                </th>
+                <td>
+                    <?php echo Form::input('contract_de', $row->contract_de, array('type' => 'text', 'size' => 40)); ?>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    <label class="control-label" for="emission_factor">CO2排出係数</label>
+                </th>
+                <td>
+                    <?php echo Form::input('emission_factor', $row->emission_factor, array('type' => 'text', 'size' => 40)); ?>
+                </td>
+            </tr>
+             <tr>
+                <th>
+                    <label class="control-label" for="conversion_factor">原油換算係数</label>
+                </th>
+                <td>
+                    <?php echo Form::input('conversion_factor', $row->conversion_factor, array('type' => 'text', 'size' => 40)); ?>
+                </td>
+            </tr>
+            <tr>
+                <th>
                     <label class="control-label" for="created_at">作成日</label>
                 </th>
                 <td>

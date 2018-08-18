@@ -48,11 +48,27 @@ class Controller_Sidebar extends Controller_admin_login {
         } else {
             $demandKey = '-';
         }
+        //契約電力取得
+        $contract_de = Model_BasicInfo::getContractDe();
+        if (isset($contract_de['contract_de'])) {
+            $contractDe = $contract_de['contract_de'];
+        } else {
+            $contractDe = '-';
+        }
+        //CO2排出係数
+        $eFactor = Model_BasicInfo::getEfactor();
+        if (isset($eFactor['emission_factor'])) {
+            $ef = $eFactor['emission_factor'];
+        } else {
+            $ef = '-';
+        }
         $data = array();
         $data['month'] = $monthdate;
         $data['MToneday'] = $monthone;
         $data['electricMonth'] = $addMonth;
         $data['demandKey'] = $demandKey;
+        $data['contractDe'] = $contractDe;
+        $data['ef'] = $ef;
         return $data;
     }
 

@@ -47,7 +47,10 @@ class Controller_BasicInfo_basic extends Controller {
                     Input::post('str_ct_1') == null or
                     Input::post('str_ct_2') == null or
                     Input::post('str_vt_1') == null or
-                    Input::post('str_vt_2') == null
+                    Input::post('str_vt_2') == null or
+                    Input::post('contract_de') == null or
+                    Input::post('emission_factor') == null or
+                    Input::post('conversion_factor') == null
             ) {
                 Session::set_flash('error', '入力されてない箇所があります');
                 Response::redirect('basicinfo/basic');
@@ -62,6 +65,27 @@ class Controller_BasicInfo_basic extends Controller {
                 Response::redirect('basicinfo/basic');
             } else if (false == preg_match('/^([a-z0-9\+_\-]+)(\.[a-z0-9\+_\-]+)*@([a-z0-9\-]+\.)+[a-z]{2,6}$/iD', Input::post('str_email_addres'))) {
                 Session::set_flash('error', 'Eメールアドレスを正しく入力してください');
+                Response::redirect('basicinfo/basic');
+            } else if (false == preg_match('/\d/', Input::post('str_ct_1'))) {
+                Session::set_flash('error', 'CT比1次側は数字を入力してください');
+                Response::redirect('basicinfo/basic');
+            } else if (false == preg_match('/\d/', Input::post('str_ct_2'))) {
+                Session::set_flash('error', 'CT比2次側は数字を入力してください');
+                Response::redirect('basicinfo/basic');
+            } else if (false == preg_match('/\d/', Input::post('str_vt_1'))) {
+                Session::set_flash('error', 'VT比1次側は数字を入力してください');
+                Response::redirect('basicinfo/basic');
+            } else if (false == preg_match('/\d/', Input::post('str_vt_2'))) {
+                Session::set_flash('error', 'VT比2次側は数字を入力してください');
+                Response::redirect('basicinfo/basic');
+            } else if (false == preg_match('/\d/', Input::post('contract_de'))) {
+                Session::set_flash('error', '契約電力は数字を入力してください');
+                Response::redircet('basicinfo/basic');
+            } else if (false == preg_match('/\d/', Input::post('emission_factor'))) {
+                Session::set_flash('error', 'CO2排出係数は数字を入力してください');
+                Response::redircet('basicinfo/basic');
+            } else if (false == preg_match('/\d/', Input::post('conversion_factor'))) {
+                Session::set_flash('error', '原油換算係数は数字で入力してください');
                 Response::redirect('basicinfo/basic');
             }
 
@@ -85,6 +109,10 @@ class Controller_BasicInfo_basic extends Controller {
             $data->str_ct_2 = Input::post('str_ct_2');
             $data->str_vt_1 = Input::post('str_vt_1');
             $data->str_vt_2 = Input::post('str_vt_2');
+            $data->contract_de = Input::post('contract_de');
+            $data->emission_factor = Input::post('emission_factor');
+            $data->conversion_factor = Input::post('conversion_factor');
+
             $updatestore = Model_BasicInfo::strupdate($str_id, $data);
             //更新が出来たかどうか確認するモジュールが必要である
             if ($updatestore) {

@@ -34,7 +34,7 @@ class Controller_Electric_Analysis extends Controller {
         //日付の取得
 
         if (!isset($today)){
-          $today = date("Y-m-01 23:00:00");
+          $today = date("Y-m-d H:00:00");
           $starttime = date("Y-m-d H:00:00",strtotime($today . "-4 hour"));
           $endtime = date("Y-m-d H:00:00",strtotime($today . "+4 hour"));
         }

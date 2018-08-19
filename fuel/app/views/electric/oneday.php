@@ -20,7 +20,7 @@
     <li class="nav-item"><a href="week">週間</a></li>
     <li class="nav-item"><a href="month">月間</a></li>
     <li class="nav-item"><a href="year">年間</a></li>
-    <li class="nav-item"><a href="sample">分析用</a></li>
+    <li class="nav-item"><a href="analysis">分析用</a></li>
 </ul>
 
 <?php echo Form::open(array('name' => 'search', 'method' => 'post', 'class' => 'form-horizontal')); ?>

@@ -182,10 +182,34 @@
     </tr>
     <tr>
         <th>
+            <label class="control-label" for="contract_de">契約電力</label>
+        </th>
+        <td>
+            <?php echo Form::input('contract_de', null, array('type' => 'text', 'size' => 40)); ?>
+        </td>
+    </tr>
+    <tr>
+        <th>
             <label class="control-label" for="demand_alarm">デマンド警報値</label>
         </th>
         <td>
             <?php echo Form::input('demand_alarm', null, array('type' => 'text', 'size' => 40)); ?>
+        </td>
+    </tr>
+    <tr>
+        <th>
+            <label class="control-label" for="emission_factor">CO2排出係数</label>
+        </th>
+        <td>
+            <?php echo Form::input('emission_factor', null, array('type' => 'text', 'size' => 40)); ?>
+        </td>
+    </tr>
+    <tr>
+        <th>
+            <label class="control-label" for="conversion_factor">原油換算係数</label>
+        </th>
+        <td>
+            <?php echo Form::input('conversion_factor', null, array('type' => 'text', 'size' => 40)); ?>
         </td>
     </tr>
 </table>

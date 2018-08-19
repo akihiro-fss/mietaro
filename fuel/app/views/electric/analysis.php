@@ -8,8 +8,6 @@
 <h3><?php echo Session::get_flash('success', 'ようこそ' . Auth::get_screen_name() . 'さん');
 ?></h3>
 
-<?php //Debug::dump($totaldata);?>
-<?php Debug::dump($date_array);?>
 <ul class="nav nav-tabs">
     <li class="nav-item"><a href="oneDay">1日</a></li>
     <li class="nav-item"><a href="week">週間</a></li>
@@ -22,32 +20,36 @@
 
 
     var analysis_array = <?php echo json_encode($date_array); ?>;
-    console.log(analysis_array);
+//    console.log(analysis_array);
     var arrayData = [];
     //googechartで表示されるようにarrayを作成中
-    for ()
-    console.log(arrayData);
-    (function(){
-      'use strict';
+    for (key in analysis_array) {
+//        console.log(key);
+//        arrayData.push(key);
+        arrayData.push([key, analysis_array[key]]);
+    }
 
-      function drawChart() {
-        var target = document.getElementById('target');
-        var data;
+    //console.log(arrayData);
+    google.charts.load('current', {'packages': ['corechart']});
+    google.setOnLoadCallback(drawChart);
+    function drawChart() {
+        var target = document.getElementById('chart');
+        var data = new google.visualization.arrayToDataTable(arrayData);
         var options = {
-          title: 'My Chart',
-          width: 500,
-          height: 300,
-
+            "title": "使用電力量",
+            "titleTextStyle": {
+                "fontSize": 20
+            },
+            "vAxis": {
+                title: 'kw/h',
+            },
+            hAxis: {
+                title: 'hour'
+            },
+            "width": 800,
+            "height": 500,
         };
-
         var chart = new google.visualization.ColumnChart(target);
-        //data = new google.visualization.arrayToDataTable(totaldata);
-        //data.addColumn('datetime','data');
-
         chart.draw(data, options);
-      }
-      google.charts.load('current', {'packages': ['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
-
-    })();
+    }
 </script>

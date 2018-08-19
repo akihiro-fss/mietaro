@@ -33,7 +33,7 @@
     </tr>
     <tr>
         <td style="text-align: center">
-            <?php echo $side['month']; ?>
+            <?php echo $side['month']; ?> KWh
         </td>
 
     </tr>
@@ -64,7 +64,7 @@
     </tr>
     <tr>
         <td>
-            <?php echo $side['MToneday']; ?>
+            <?php echo $side['MToneday']; ?> kWh
         </td>
     </tr>
     <tr>
@@ -74,7 +74,7 @@
     </tr>
     <tr>
         <td>
-            <?php echo $side['electricMonth']; ?>
+            <?php echo $side['electricMonth']; ?> kWh
         </td>
     </tr>
     <tr>
@@ -84,7 +84,7 @@
     </tr>
     <tr>
         <td>
-            表示できない
+            <?php echo floor($side['electricMonth'] * $side['ef']); ?> kg-CO2
         </td>
     </tr>
     <tr>
@@ -94,7 +94,7 @@
     </tr>
     <tr>
         <td>
-            表示できない
+            <?php echo $side['contractDe']; ?> kW
         </td>
     </tr>
     <tr>
@@ -104,7 +104,7 @@
     </tr>
     <tr>
         <td>
-            <?php echo $side['demandKey']; ?>
+            <?php echo $side['demandKey']; ?> kW
         </td>
     </tr>
 </table>

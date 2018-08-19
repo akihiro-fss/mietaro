@@ -3,7 +3,7 @@
 /**
  *
  * 作成日：2017/07/17
- * 更新日：2017/12/30
+ * 更新日：2018/08/19
  * 作成者：戸田滉洋
  * 更新者：戸田滉洋
  *
@@ -25,6 +25,7 @@ class Controller_Electric_year extends Controller {
     }
 
     public function action_index() {
+        $yeardata = Model_Electric::yeardata();
         //テーマのインスタンス化
         $theme = \Theme::forge();
         //テーマにテンプレートのセット
@@ -32,7 +33,7 @@ class Controller_Electric_year extends Controller {
         //テーマのテンプレートにタイトルをセット
         $theme->get_template()->set('title', 'MIETARO');
         //テーマのテンプレートにビューとページデータをセット
-        $theme->get_template()->set('content', $theme->view('electric/year'));         //テーマのテンプレートにビューとページデータをセット
+        $theme->get_template()->set('content', $theme->view('electric/year', $yeardata)->set('yearData',$yeardata));
         $theme->get_template()->set('sidebar', $theme->view('sidebar'));
         return $theme;
     }

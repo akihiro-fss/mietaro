@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * 作成日：2017/08/11
- * 更新日：2018/08/15
+ * 作成日：2017/8/11
+ * 更新日：2018/08/19
  * 作成者：戸田滉洋
- * 更新者：戸田滉洋
+ * 更新者：丸山　隼
  *
  * The Top Electric.
  *
@@ -20,7 +20,7 @@
     <li class="nav-item"><a href="week">週間</a></li>
     <li class="nav-item"><a href="month">月間</a></li>
     <li class="nav-item"><a href="year">年間</a></li>
-    <li class="nav-item"><a href="analysis">分析用</a></li>
+    <li class="nav-item"><a href="sample">分析用</a></li>
 </ul>
 
 <?php echo Form::open(array('name' => 'search', 'method' => 'post', 'class' => 'form-horizontal')); ?>
@@ -155,8 +155,8 @@
                 hAxis: {
                     title: 'hour'
                 },
-                "width": 800,
-                "height": 500,
+                "width": 900,
+                "height": 600,
                 seriesType: 'line',
                 series: {1: {type: 'bars'}}
             };
@@ -180,8 +180,8 @@
                 hAxis: {
                     title: 'hour'
                 },
-                "width": 800,
-                "height": 500,
+                "width": 900,
+                "height": 600,
             };
             var chart = new google.visualization.ColumnChart(document.getElementById('chart'));
             chart.draw(data, options);

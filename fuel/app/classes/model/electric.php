@@ -2,7 +2,7 @@
 /**
  *
  * 作成日：2017/08/03
- * 更新日：2017/1/23
+ * 更新日：2018/08/19
  * 作成者：戸田滉洋
  * 更新者：丸山　隼
  *
@@ -49,7 +49,7 @@ class Model_Electric extends \orm\Model {
      * SELECT用メソッド
      */
     private static function selectElectricData($str_id, $start, $end) {
-        $sql = "SELECT electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
+        $sql = "SELECT electric_at, str_id, electric_kw, demand_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
         return \DB::query($sql)->execute()->as_array();
     }
 
@@ -144,7 +144,7 @@ class Model_Electric extends \orm\Model {
             'result' => array(),
             'max_demand' => 0
         );
-        if(!is_null($secondGraphFlg)){
+        if($secondGraphFlg){
             $tmp_result = self::calcOnedayDemandAverageDate($str_id,$twoday_st);
             $result_demand_twoday = array(
                 'result' => $tmp_result['result'],
@@ -238,15 +238,24 @@ class Model_Electric extends \orm\Model {
         $onemonthdate = date('Y-m-d');
         $twomonthdate = "";
         if (Input::method() == 'POST') {
-            $onemonthdate = Input::post('onemonthdate');
-            $month_st = date('Y-m-1 00:00:00', strtotime($onemonthdate));
-            $month_end = date('Y-m-d 23:59:59', strtotime("-1 days ",strtotime(date('Y-m-1 00:00:00', strtotime("+1 MONTH ",strtotime($month_st))))));
-            if($secondGraphFlg){
-                $twomonthdate = Input::post('twomonthdate');
-                if($twomonthdate == ""){
-                    $twomonthdate = date('Y-m-01', strtotime("-1 days ",strtotime($month_st)));
+            $onemonthdate = Input::post('onedaydate');
+            if(empty($onemonthdate)){
+                $onemonthdate = Input::post('param_date_1');
+                if(empty($onedaydate)){
+                    $onemonthdate = date('Y-m-d');
                 }
             }
+            if($secondGraphFlg){
+                $twomonthdate = Input::post('twomonthdate');
+                if(empty($twomonthdate)){
+                    $twomonthdate = Input::post('param_date_2');
+                    if(empty($twomonthdate)){
+                        $twomonthdate = date('Y-m-d');
+                    }
+                }
+            }
+            $month_st = date('Y-m-1 00:00:00', strtotime($onemonthdate));
+            $month_end = date('Y-m-d 23:59:59', strtotime("-1 days ",strtotime(date('Y-m-1 00:00:00', strtotime("+1 MONTH ",strtotime($month_st))))));
             $month_ago_st = date('Y-m-1 00:00:00', strtotime($twomonthdate));
             $month_ago_end = date('Y-m-d 23:59:59', strtotime("-1 days ",strtotime(date('Y-m-1 00:00:00', strtotime("+1 MONTH ",strtotime($month_ago_st))))));
         } else {
@@ -261,7 +270,7 @@ class Model_Electric extends \orm\Model {
         $str_id = $auth->get_str_id();
         $result_a_month = Model_Electric::selectElectricData($str_id, $month_st, $month_end);
         $result_a_month_ago=array();
-        if(!is_null($secondGraphFlg)){
+        if($secondGraphFlg){
             $result_a_month_ago = Model_Electric::selectElectricData($str_id, $month_ago_st, $month_ago_end);
             //前月グラフデータ表示有効
             $checkedFlg = 1;
@@ -274,22 +283,8 @@ class Model_Electric extends \orm\Model {
             'target_date_1' => $onemonthdate,
             'target_date_2' => $twomonthdate,
             'checked_flg' => $checkedFlg,
-            'month_data' => $result['result'],
-            'total_set_1' => $result['total_one_month'],
-            'total_set_2' => $result['total_two_month'],
+            'result' => $result,
         );
-    }
-
-     //sideberに表示するための月間使用電力量取得
-    public static function getSideBerData() {
-        $monthdata = date('Y-m-d');
-        $month_st = date('Y-m-1 00:00:00', strtotime($monthdata));
-        $month_end = date('Y-m-d 23:59:59', strtotime("-1 days ", strtotime(date('Y-m-1 00:00:00', strtotime("+1 MONTH ", strtotime($month_st))))));
-        //Authのインスタンス化
-        $auth = Auth::instance();
-        $str_id = $auth->get_str_id();
-        $result_a_month = Model_Electric::DbData($str_id, $month_st, $month_end);
-        return $result_a_month;
     }
 
     /**
@@ -301,14 +296,23 @@ class Model_Electric extends \orm\Model {
         $twoyeardate = "";
         if (Input::method() == 'POST') {
             $oneyeardate = Input::post('oneyeardate');
-            $oneYearsdate_st = date('Y-01-01 00:00:00', strtotime($oneyeardate));
-            $oneYearsdate_end = date('Y-12-31 23:59:59', strtotime($oneyeardate));
-            if($secondGraphFlg){
-                $twoyeardate = Input::post('twoyeardate');
-                if($twoyeardate == ""){
-                    $twoyeardate = date('Y-01-01',strtotime('-1 years',strtotime($oneyeardate)));
+            if(empty($oneyeardate)){
+                $oneyeardate = Input::post('param_date_1');
+                if(empty($oneyeardate)){
+                    $oneyeardate = date('Y-m-d');
                 }
             }
+            if($secondGraphFlg){
+                $twoyeardate = Input::post('twoyeardate');
+                if(empty($twoyeardate)){
+                    $twoyeardate = Input::post('param_date_2');
+                    if(empty($twoyeardate)){
+                        $twoyeardate = date('Y-m-d');
+                    }
+                }
+            }
+            $oneYearsdate_st = date('Y-01-01 00:00:00', strtotime($oneyeardate));
+            $oneYearsdate_end = date('Y-12-31 23:59:59', strtotime($oneyeardate));
             $twoYearsdate_st = date('Y-01-01 00:00:00', strtotime($twoyeardate));
             $twoYearsdate_end = date('Y-12-31 23:59:59', strtotime($twoyeardate));
         } else {
@@ -324,7 +328,7 @@ class Model_Electric extends \orm\Model {
         $str_id = $auth->get_str_id();
         $result_one_years = Model_Electric::selectElectricData($str_id, $oneYearsdate_st, $oneYearsdate_end);
         $result_two_years=array();
-        if(!is_null($secondGraphFlg)){
+        if($secondGraphFlg){
             $result_two_years = Model_Electric::selectElectricData($str_id, $twoYearsdate_st, $twoYearsdate_end);
             $checkedFlg = 1;
         }else{
@@ -333,15 +337,29 @@ class Model_Electric extends \orm\Model {
         $result = self::convertDataForYear($result_one_years,$result_two_years,$oneYearsdate_st,$twoYearsdate_st,$checkedFlg);
 
         return array(
-            'graph_data' => $result['result'],
+            'result' => $result['result'],
+            'result_demand' => $result['result_demand'],
             'target_date_1' => $oneyeardate,
             'target_date_2' => $twoyeardate,
             'checked_flg' => $checkedFlg,
             'total_set_1' => $result['total_one_year'],
             'total_set_2' => $result['total_two_year'],
+            'max_demand_1' => $result['max_demand_one_year'],
+            'max_demand_2' => $result['max_demand_two_year'],
         );
     }
 
+    //sideberに表示するための月間使用電力量取得
+    public static function getSideBerData() {
+        $monthdata = date('Y-m-d');
+        $month_st = date('Y-m-1 00:00:00', strtotime($monthdata));
+        $month_end = date('Y-m-d 23:59:59', strtotime("-1 days ", strtotime(date('Y-m-1 00:00:00', strtotime("+1 MONTH ", strtotime($month_st))))));
+        //Authのインスタンス化
+        $auth = Auth::instance();
+        $str_id = $auth->get_str_id();
+        $result_a_month = Model_Electric::DbData($str_id, $month_st, $month_end);
+        return $result_a_month;
+    }
 
     /**
      * 指定日付の30分毎の電力量の平均値を計算し表示用配列に変換する
@@ -583,10 +601,12 @@ class Model_Electric extends \orm\Model {
      * @return グラフ表示用配列
      */
     public static function convertDataForMonth($result_one_month_ago,$result_two_month_ago,$month_st,$month_end,$month_ago_st,$month_ago_end,$checkedFlg){
-
         //合計値用
         $totalOneMonth = 0;
         $totalTwoMonth = 0;
+        //最大値保持用
+        $maxDemandOneMonth = 0;
+        $maxDemandTwoMonth = 0;
 
         $day = date('j',strtotime($month_st));
         $end1 = date('j',strtotime($month_end));
@@ -598,53 +618,100 @@ class Model_Electric extends \orm\Model {
             $end = $end2;
         }
 
+        //配列初期化
         //date1Arrayの各要素の配列の0番目の要素が日付、1番目は当月、2番目は先月の電力量用
+        //demandArrayの各要素の配列の0番目の要素が日付、1番目は当月、2番目は先月の電力量用
         if($checkedFlg){
             $date1Array = array(
                 array("",date('n',strtotime($month_st))."月電力量",date('n',strtotime($month_ago_st))."月電力量"),
             );
+            $demandArray = array(
+                array("",date('n',strtotime($month_st))."月デマンド値",date('n',strtotime($month_ago_st))."月デマンド値"),
+            );
             for($i=$day;$i <= $end;$i++){
                 array_push($date1Array,array("$i",0,0));
+                array_push($demandArray,array("$i",0,0));
             }
         }else{
             $date1Array = array(
                 array("",date('n',strtotime($month_st))."月電力量"),
             );
+            $demandArray = array(
+                array("",date('n',strtotime($month_st))."月デマンド値"),
+            );
             for($i=$day;$i <= $end;$i++){
                 array_push($date1Array,array("$i",0));
+                array_push($demandArray,array("$i",0));
             }
         }
 
         //計算処理軽減のため抽出結果を整形
         $targetDate1 = date('Y-m-d',strtotime($month_st));
         $targetDate2 = date('Y-m-d',strtotime($month_ago_st));
+        //最大値計算用
+        $max_demand_1 = 0;
+        $max_demand_2 = 0;
         foreach($date1Array as $index=>$date){
             if($index == 0){ continue;}
             //平均値計算用
             $count1 = 0;
             $count2 = 0;
+            $demand_count1 = 0;
+            $demand_count2 = 0;
 
             foreach($result_one_month_ago as $tmpData1){
                 if(strpos($tmpData1['electric_at'],$targetDate1) !== FALSE){
-                   $count1++;
-                   $date1Array[$index][1] += intVal($tmpData1['electric_kw']);
-               }
+                   //電力計算
+                   if(intVal($tmpData1['electric_kw']) > 0){
+                       $date1Array[$index][1] += intVal($tmpData1['electric_kw']);
+                       $count1++;
+                   }
+                   //デマンド計算
+                   if(intVal($tmpData1['demand_kw']) > 0){
+                       $demandArray[$index][1] += intVal($tmpData1['demand_kw']);
+                       $demand_count1++;
+                       if(intVal($tmpData1['demand_kw']) > $max_demand_1){
+                           $max_demand_1 = intVal($tmpData1['demand_kw']);
+                       }
+                   }
+                }
             }
 
             foreach($result_two_month_ago as $tmpData2){
                if(strpos($tmpData2['electric_at'],$targetDate2) !== FALSE){
-                   $count2++;
-                   $date1Array[$index][2] += intVal($tmpData2['electric_kw']);
+                   //電力計算
+                   if(intVal($tmpData2['electric_kw']) > 0){
+                       $date1Array[$index][2] += intVal($tmpData2['electric_kw']);
+                       $count2++;
+                   }
+                   //デマンド計算
+                   if(intVal($tmpData2['demand_kw']) > 0){
+                       $demandArray[$index][2] += intVal($tmpData2['demand_kw']);
+                       $demand_count2++;
+                       if(intVal($tmpData2['demand_kw']) > $max_demand_2){
+                           $max_demand_2 = intVal($tmpData2['demand_kw']);
+                       }
+                   }
                }
             }
 
             if($count1 > 0){
+                //電力
                 $date1Array[$index][1] = (int)($date1Array[$index][1] / $count1);
                 $totalOneMonth += (int)$date1Array[$index][1];
             }
+            if($demand_count1 > 0){
+                //デマンド
+                $demandArray[$index][1] = $max_demand_1;
+            }
             if($count2 > 0){
+                //電力
                 $date1Array[$index][2] = (int)($date1Array[$index][2] / $count2);
                 $totalTwoMonth += (int)$date1Array[$index][2];
+            }
+            if($demand_count2 > 0){
+                //デマンド
+                $demandArray[$index][2] = $max_demand_2;
             }
 
             $targetDate1 = date('Y-m-d',strtotime('+1 days'.$targetDate1));
@@ -655,6 +722,9 @@ class Model_Electric extends \orm\Model {
             'result' => $date1Array,
             'total_one_month' => $totalOneMonth,
             'total_two_month' => $totalTwoMonth,
+            'result_demand' => $demandArray,
+            'max_demand_one_month' => $max_demand_1,
+            'max_demand_two_month' => $max_demand_2,
         );
     }
 
@@ -674,26 +744,38 @@ class Model_Electric extends \orm\Model {
             $dateArray = array(
                 array("",date('Y',strtotime($oneYearsdate_st))."年電力量",date('Y',strtotime($twoYearsdate_st))."年電力量"),
             );
+            $demandArray = array(
+                array("",date('Y',strtotime($oneYearsdate_st))."年デマンド値",date('Y',strtotime($twoYearsdate_st))."年デマンド値"),
+            );
             for($i = 1;$i <= 12;$i++){
                 if($i < 10){
                     $i = "0".$i;
                 }
                 array_push($dateArray,array("$i",0,0));
+                array_push($demandArray,array("$i",0,0));
             }
         }else{
             $dateArray = array(
                 array("",date('Y',strtotime($oneYearsdate_st))."年電力量"),
+            );
+            $demandArray = array(
+                array("",date('Y',strtotime($oneYearsdate_st))."年デマンド値"),
             );
             for($i = 1;$i <= 12;$i++){
                 if($i < 10){
                     $i = "0".$i;
                 }
                 array_push($dateArray,array("$i",0));
+                array_push($demandArray,array("$i",0));
             }
         }
 
         //平均値計算用配列
         $calcArray = $dateArray;
+
+        //デマンド最大値保持用
+        $demandMax1 = 0;
+        $demandMax2 = 0;
 
         //電力量計算
         foreach($result_one_years as $tmpData){
@@ -701,8 +783,16 @@ class Model_Electric extends \orm\Model {
             foreach($dateArray as $index => $date){
                 if($index == 0){continue;}
                 if($month == $date[0]){
-                    $dateArray[$index][1] += intVal($tmpData['electric_at']);
+                    //電力量計算
+                    $dateArray[$index][1] += intVal($tmpData['electric_kw']);
                     $calcArray[$index][1]++;
+                    //デマンド
+                    if($demandArray[$index][1] < intVal($tmpData['demand_kw'])){
+                        $demandArray[$index][1] = intVal($tmpData['demand_kw']);
+                    }
+                    if($demandMax1 < $demandArray[$index][1]){
+                        $demandMax1 = $demandArray[$index][1];
+                    }
                 }
             }
         }
@@ -712,8 +802,16 @@ class Model_Electric extends \orm\Model {
             foreach($dateArray as $index => $date){
                 if($index == 0){continue;}
                 if($month == $date[0]){
-                    $dateArray[$index][2] += intVal($tmpData['electric_at']);
+                    //電力量計算
+                    $dateArray[$index][2] += intVal($tmpData['electric_kw']);
                     $calcArray[$index][2]++;
+                    //デマンド
+                    if($demandArray[$index][2] < intVal($tmpData['demand_kw'])){
+                        $demandArray[$index][2] = intVal($tmpData['demand_kw']);
+                    }
+                    if($demandMax2 < $demandArray[$index][2]){
+                        $demandMax2 = $demandArray[$index][2];
+                    }
                 }
             }
         }
@@ -736,8 +834,11 @@ class Model_Electric extends \orm\Model {
 
         return array(
             'result' => $dateArray,
+            'result_demand' => $demandArray,
             'total_one_year' => $totalOneYear,
             'total_two_year' => $totalTwoYear,
+            'max_demand_one_year' => $demandMax1,
+            'max_demand_two_year' => $demandMax2,
         );
     }
 

@@ -27,6 +27,25 @@ class Controller_Electric_yearcompaire extends Controller {
 
     public function action_index() {
 
+        //日付フォームの値を取得
+        $param = \Input::post();
+        $oneyearDate = \Arr::get($param, 'param_date_1', null);
+        Debug::dump($oneyearDate);
+        $twoyearDate = \Arr::get($param, 'param_date_2', null);
+        Debug::dump($twoyearDate);
+        if (empty($oneyearDate)){
+            $oneyearDate = new DateTime();
+            Debug::dump($oneyearDate->format('Y-m-d H:i:s'));
+        }
+        if (empty($twoyearDate)){
+            $twoyearDate = new Datetime();
+            Debug::dump($twoyearDate->format('Y-m-d H:i:s'));
+        }
+        //店舗ID取得
+        $auth = Auth::instance();
+        $strId = $auth->get_str_id();
+        
+        // 使用電力の比較表
         //テーマのインスタンス化
         $theme = \Theme::forge();
         //テーマにテンプレートのセット

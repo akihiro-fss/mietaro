@@ -26,39 +26,39 @@
 </ul>
 
 <?php echo Form::open(array('name' => 'onedayinfo', 'method' => 'post', 'class' => 'form-horizontal')); ?>
-    <table id="electric-data-table" class="table table-bordered">
-        <tr>
-            <th></th>
-            <th style="text-align:center;" colspan="5">
-                メイン詳細</br>
-                <input type="date" name="param_date_1" value="param_date_1" id="form_param_date_1" style="width:150px; height:20px">
-                <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
-            </th>
-            <th style="text-align:center;" colspan="5">
-                比較対象詳細</br>
-                <input type="date" name="param_date_2" value="param_date_2" id="form_param_date_2" style="width:150px; height:20px">
-                <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
-            </th>
-            <th colspan="3" style="text-align:center;">比較表</th>
-        </tr>
-        <tr>
-            <th>  時 間  </th>
-            <th>使用電力量(kWh)</th>
-            <th>電力量料金(円)</th>
-            <th>デマンド(kW)</th>
-            <th>気温(℃)</th>
-            <th>湿度(%)</th>
-            <th>使用電力量(kwh)</th>
-            <th>電力量料金(円)</th>
-            <th>デマンド(kwh)</th>
-            <th>気温(℃)</th>
-            <th>湿度(%)</th>
-            <th>使用電力量(kwh)</th>
-            <th>電力量料金(円)</th>
-            <th>比率(％)</th>
-        </tr>
-        <tr><td>0:00~</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-    </table>
+<table id="electric-data-table" class="table table-bordered">
+    <tr>
+        <th></th>
+        <th style="text-align:center;" colspan="5">
+            メイン詳細</br>
+            <input type="date" name="param_date_1" value="param_date_1" id="form_param_date_1" style="width:150px; height:20px">
+            <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
+        </th>
+        <th style="text-align:center;" colspan="5">
+            比較対象詳細</br>
+            <input type="date" name="param_date_2" value="param_date_2" id="form_param_date_2" style="width:150px; height:20px">
+            <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
+        </th>
+        <th colspan="3" style="text-align:center;">比較表</th>
+    </tr>
+    <tr>
+        <th>  時 間  </th>
+        <th>使用電力量(kWh)</th>
+        <th>電力量料金(円)</th>
+        <th>デマンド(kW)</th>
+        <th>気温(℃)</th>
+        <th>湿度(%)</th>
+        <th>使用電力量(kwh)</th>
+        <th>電力量料金(円)</th>
+        <th>デマンド(kwh)</th>
+        <th>気温(℃)</th>
+        <th>湿度(%)</th>
+        <th>使用電力量(kwh)</th>
+        <th>電力量料金(円)</th>
+        <th>比率(％)</th>
+    </tr>
+    <tr><td>0:00~</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+</table>
 <?php echo Form::close(); ?>
 
 <script>

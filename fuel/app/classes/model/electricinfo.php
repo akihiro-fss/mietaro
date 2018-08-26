@@ -23,7 +23,7 @@ class Model_ElectricInfo extends \orm\Model {
 
     //DBへのセレクトクエリメソッド
     private static function selectElectricData($strId,$date_start,$date_end){
-        $sql = "SELECT electric_at, str_id, electric_kw FROM Electric WHERE str_id = $strId AND electric_at >= '$date_start' AND electric_at <= '$date_end'";
+        $sql = "SELECT electric_at, str_id, electric_kw,demand_kw FROM Electric WHERE str_id = $strId AND electric_at >= '$date_start' AND electric_at <= '$date_end'";
         return \DB::query($sql)->execute()->as_array();
     }
 

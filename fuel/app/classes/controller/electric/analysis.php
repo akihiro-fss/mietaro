@@ -41,9 +41,9 @@ class Controller_Electric_Analysis extends Controller {
         $auth = Auth::instance();
         $str_id = $auth->get_str_id();
 
-//        Debug::dump($today);
-//        Debug::dump($starttime);
-//        Debug::dump($endtime);
+        Debug::dump($today);
+        Debug::dump($starttime);
+        Debug::dump($endtime);
 
         // $diff = (strtotime($endtime) - strtotime($starttime)) / ( 60 * 60 * 24);
         // for($i = 0; $i <= $diff; $i++) {
@@ -53,7 +53,7 @@ class Controller_Electric_Analysis extends Controller {
         $start = new Datetime($starttime);
         $end = new Datetime($endtime);
         $period = new DatePeriod($start, $interval, $end);
-//        Debug::dump($period);
+        Debug::dump($period);
         $date_array = [];
         foreach ($period as $datetime) {
           //echo $datetime->format('Y-m-d H:m:s');
@@ -61,7 +61,7 @@ class Controller_Electric_Analysis extends Controller {
           //Debug::dump($datetime->format('Y-m-d H:m:00'));
           $date_array[] = $datetime->format('Y-m-d H:i:00');
         }
-//        Debug::dump($date_array);
+        Debug::dump($date_array);
         $totaldata = Model_analysis::analysisdata($str_id,$starttime,$endtime);
         $arrayDate = [];
         $count_date_array = count($date_array);
@@ -80,14 +80,14 @@ class Controller_Electric_Analysis extends Controller {
             $array_date[$date_array[$i]] = 0;
           }
         }
-//        Debug::dump($array_date);
+        Debug::dump($array_date);
         //Debug::dump($totaldata);
 
         //Debug::dump($analysis_array);
 
         $array_count = count($date_array);
         $array_total = [];
-//        Debug::dump($array_total);
+        Debug::dump($array_total);
 
         $data = array();
         #$data['totaldata'] = $totaldata;

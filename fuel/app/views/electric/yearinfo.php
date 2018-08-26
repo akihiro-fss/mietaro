@@ -26,36 +26,36 @@
 </ul>
 
 <?php echo Form::open(array('name' => 'yearinfo', 'method' => 'post', 'class' => 'form-horizontal')); ?>
-<table id="electric-data-table" class="table table-bordered">
-    <tr>
-        <th style="text-align:center;" colspan="6">
-            メイン詳細</br>
-            <input type="date" name="param_date_1" value="param_date_1" id="form_param_date_1" style="width:150px; height:20px">
-            <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
-        </th>
-        <th style="text-align:center;" colspan="5">
-            比較対象詳細</br>
-            <input type="date" name="param_date_2" value="param_date_2" id="form_param_date_2" style="width:150px; height:20px">
-            <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
-        </th>
-        <th colspan="3" style="text-align:center;">比較表</th>
-    </tr>
-    <tr>
-        <th>  月 次  </th>
-        <th>小計(kWh)</th>
-        <th>最大デマンド値(kW)</th>
-        <th>発生時刻</th>
-        <th>気温(℃)</th>
-        <th>湿度(%)</th>
-        <th>小計(kWh)</th>
-        <th>最大デマンド値(kW)</th>
-        <th>発生時刻</th>
-        <th>気温(℃)</th>
-        <th>湿度(%)</th>
-        <th>使用電力量(kwh)</th>
-        <th>比率(％)</th>
-    </tr>
-</table>
+    <table id="electric-data-table" class="table table-bordered">
+        <tr>
+            <th style="text-align:center;" colspan="6">
+                メイン詳細</br>
+                <input type="date" name="param_date_1" value="param_date_1" id="form_param_date_1" style="width:150px; height:20px">
+                <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
+            </th>
+            <th style="text-align:center;" colspan="5">
+                比較対象詳細</br>
+                <input type="date" name="param_date_2" value="param_date_2" id="form_param_date_2" style="width:150px; height:20px">
+                <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
+            </th>
+            <th colspan="3" style="text-align:center;">比較表</th>
+        </tr>
+        <tr>
+            <th>  月 次  </th>
+            <th>小計(kWh)</th>
+            <th>最大デマンド値(kW)</th>
+            <th>発生時刻</th>
+            <th>気温(℃)</th>
+            <th>湿度(%)</th>
+            <th>小計(kWh)</th>
+            <th>最大デマンド値(kW)</th>
+            <th>発生時刻</th>
+            <th>気温(℃)</th>
+            <th>湿度(%)</th>
+            <th>使用電力量(kwh)</th>
+            <th>比率(％)</th>
+        </tr>
+    </table>
 <?php echo Form::close(); ?>
 
 

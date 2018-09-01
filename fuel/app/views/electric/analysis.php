@@ -48,7 +48,7 @@
 //        arrayData.push(key);
         chartdata.push([key, analysis_array[key]]);
     }
-    console.log(chartdata);
+    
     //console.log(arrayData);
     google.charts.load('current', {'packages': ['corechart']});
     google.setOnLoadCallback(drawChart);

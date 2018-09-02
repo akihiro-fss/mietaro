@@ -238,7 +238,7 @@ class Model_Electric extends \orm\Model {
         $onemonthdate = date('Y-m-d');
         $twomonthdate = "";
         if (Input::method() == 'POST') {
-            $onemonthdate = Input::post('onedaydate');
+            $onemonthdate = Input::post('onemonthdate');
             if(empty($onemonthdate)){
                 $onemonthdate = Input::post('param_date_1');
                 if(empty($onedaydate)){

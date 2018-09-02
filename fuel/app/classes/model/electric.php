@@ -697,7 +697,8 @@ class Model_Electric extends \orm\Model {
 
             if($count1 > 0){
                 //電力
-                $date1Array[$index][1] = (int)($date1Array[$index][1] / $count1);
+                //$date1Array[$index][1] = (int)($date1Array[$index][1] / $count1);
+                $date1Array[$index][1] = (int)$date1Array[$index][1];
                 $totalOneMonth += (int)$date1Array[$index][1];
             }
             if($demand_count1 > 0){
@@ -706,7 +707,8 @@ class Model_Electric extends \orm\Model {
             }
             if($count2 > 0){
                 //電力
-                $date1Array[$index][2] = (int)($date1Array[$index][2] / $count2);
+                //$date1Array[$index][2] = (int)($date1Array[$index][2] / $count2);
+                $date1Array[$index][2] = (int)$date1Array[$index][2];
                 $totalTwoMonth += (int)$date1Array[$index][2];
             }
             if($demand_count2 > 0){
@@ -822,7 +824,8 @@ class Model_Electric extends \orm\Model {
             foreach($arrayData as $key=>$count){
                 if($key == 0){continue;}
                 if($count == 0){continue;}
-                $dateArray[$index][$key] = (int)($dateArray[$index][$key] / $count);
+                //$dateArray[$index][$key] = (int)($dateArray[$index][$key] / $count);
+                $dateArray[$index][$key] = (int)$dateArray[$index][$key];
                 if($key == 1){
                     $totalOneYear += (int)$dateArray[$index][1];
                 }elseif($key == 2){

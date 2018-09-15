@@ -280,10 +280,12 @@ class Model_ElectricInfo extends \orm\Model {
 
         //計算結果格納用配列
         $result = array(
-            'oneyear_date' => array(),
-            'twoyear_date' => array(),
-            'oneyear_total' => 0,
-            'twoyear_total' => 0,
+        	'oneyear_electric' => array(),
+        	'twoyear_electric' => array(),
+        	'oneyear_demand' => array(),
+        	'twoyear_demand' => array(),
+        	'oneyear_total' => 0,
+        	'twoyear_total' => 0,
         );
 
         //メイン
@@ -308,16 +310,24 @@ class Model_ElectricInfo extends \orm\Model {
         $result2 = self::selectElectricData($strId, $twoyearStart,$twoyearEnd);
         //月毎に電力情報を取得
         $convertResult = Model_Electric::convertDataForYear($result1,$result2,$oneyearStart,$oneyearEnd,$twoyearStart,$twoyearEnd,1);
-
-             foreach($convertResult['result'] as $index=>$arrayData){
-                if($index == 0){continue;}
-                $result['oneyear_date'] = array_merge($result['oneyear_date'],array($arrayData[0]."月"=>(int)$arrayData[1]));
-            }
-
-            foreach($convertResult['result'] as $index=>$arrayData){
-                if($index == 0){continue;}
-                $result['twoyear_date'] = array_merge($result['twoyear_date'],array($arrayData[0]."月"=>(int)$arrayData[2]));
-            }
+        //電力量
+        foreach($convertResult['result'] as $index=>$arrayData){
+        	if($index == 0){continue;}
+        	$result['oneyear_electric'] = array_merge($result['oneyear_electric'],array($arrayData[0]."月"=>(int)$arrayData[1]));
+        }
+        foreach($convertResult['result'] as $index=>$arrayData){
+        	if($index == 0){continue;}
+        	$result['twoyear_electric'] = array_merge($result['twoyear_electric'],array($arrayData[0]."月"=>(int)$arrayData[2]));
+        }
+        //最大デマンド値
+        foreach($convertResult['result_demand'] as $index=>$arrayData){
+        	if($index == 0){continue;}
+            $result['oneyear_demand'] = array_merge($result['oneyear_demand'],array($arrayData[0]."月"=>(int)$arrayData[1]));
+        }
+        foreach($convertResult['result_demand'] as $index=>$arrayData){
+        	if($index == 0){continue;}
+            $result['twoyear_demand'] = array_merge($result['twoyear_demand'],array($arrayData[0]."月"=>(int)$arrayData[2]));
+        }
 
         $result['oneyear_total'] = $convertResult['total_one_year'];
         $result['twoyear_total'] = $convertResult['total_two_year'];

@@ -24,25 +24,38 @@
 </ul>
 <h3 style="text-alin:center">分析用</h3>
 <table>
-    <tr><th align="left">表示したい日付時間を指定してください</br>
-  </th></tr>
-<tr>
+    <?php echo Form::open(array('name' => 'analysis', 'method' => 'post', 'class' => 'form-horizontal')); ?>
+    <tr>
+        <th align="left">
+            表示したい日付時間を指定してください</br>
+        </th>
+    </tr>
+    <tr>
+        <th align="left">
+            表示開始時間</br>
+            <?php echo Form::input('starttime', $starttime, array('type' => 'datetime-local')); ?>
+        </th>
+        <th align="left">
+            表示終了時間</br>
+            <?php echo Form::input('endtime', $endtime, array('type' => 'datetime-local')); ?></br>
+        </th>
+    </tr>
+    <tr>
     <th align="left">
-      <?php echo Form::open(array('name' => 'analysis', 'method' => 'post', 'class' => 'form-horizontal')); ?>
-        表示開始時間<?php echo Form::input('starttime',$starttime, array('type' => 'datetime-local')); ?></br>
-        表示終了時間<?php echo Form::input('endtime', $endtime, array('type' => 'datetime-local')); ?></br>
-        <?php echo Form::submit('submit', '決定', array('class' => 'btn btn-primary')); ?></br>
-    </th>
-  </tr>
+    <?php echo Form::submit('submit', '決定', array('class' => 'btn btn-primary'));?></th>
+    </tr>
 </table>
 <div id="chart"></div>
-<script>
 
+<ul class="nav nav-tabs" style="border-bottom:none;">
+	<li class="nav-item"><a href="analysisinfo">詳細表を表示</a></li>
+</ul>
+<script>
 
     var analysis_array = <?php echo json_encode($date_array); ?>;
 //    console.log(analysis_array);
     var chartdata = [];
-    //googechartで使用出来るように配列の変更
+    // googechartで使用出来るように配列の変更
     for (key in analysis_array) {
 //        console.log(key);
 //        arrayData.push(key);
@@ -50,6 +63,7 @@
     }
     
     //console.log(arrayData);
+    // googlechart表示
     google.charts.load('current', {'packages': ['corechart']});
     google.setOnLoadCallback(drawChart);
     function drawChart() {

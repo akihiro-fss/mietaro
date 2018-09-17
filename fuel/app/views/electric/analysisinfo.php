@@ -8,12 +8,14 @@
  /**
   *
   * 作成日：2018/09/16
-  * 更新日：
+  * 更新日：2018/09/17
   * 作成者：戸田滉洋
-  * 更新者：
+  * 更新者：戸田滉洋
   *
   */
 ?>
+
+<h3 style="text-alin:center">分析用詳細</h3>
 <ul class="nav nav-tabs">
     <li class="nav-item"><a href="oneDay">1日</a></li>
     <li class="nav-item"><a href="week">週間</a></li>
@@ -21,7 +23,7 @@
     <li class="nav-item"><a href="year">年間</a></li>
     <li class="nav-item"><a href="analysis">分析用</a></li>
 </ul>
-<h3 style="text-alin:center">分析用詳細</h3>
+
 <table>
     <?php echo Form::open(array('name' => 'analysis', 'method' => 'post', 'class' => 'form-horizontal')); ?>
     <tr>
@@ -82,6 +84,24 @@
         echo "</tr>";
     }
     ?>
+</table>
+<table id="electric-data-table" class="table table-bordered">
+    <tr>
+        <th>
+            合計使用電力量
+        </th>
+        <td>
+            <?php echo $total_electric; ?>
+        </td>
+    </tr>
+    <tr>
+        <th>
+            CO2排出量
+        </th>
+        <td>
+            <?php echo floor($total_electric * $emission_factor); ?>(kg-CO2)
+        </td>
+    <t/r>
 </table>
 
 

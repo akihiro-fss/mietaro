@@ -8,13 +8,14 @@
  /**
   *
   * 作成日：2018/08/14
-  * 更新日：2018/08/25
+  * 更新日：2018/09/17
   * 作成者：戸田滉洋
   * 更新者：戸田滉洋
   *
   */
 ?>
 
+<h3 style="text-alin:center">分析用</h3>
 <ul class="nav nav-tabs">
     <li class="nav-item"><a href="oneDay">1日</a></li>
     <li class="nav-item"><a href="week">週間</a></li>
@@ -22,7 +23,7 @@
     <li class="nav-item"><a href="year">年間</a></li>
     <li class="nav-item"><a href="analysis">分析用</a></li>
 </ul>
-<h3 style="text-alin:center">分析用</h3>
+
 <table>
     <?php echo Form::open(array('name' => 'analysis', 'method' => 'post', 'class' => 'form-horizontal')); ?>
     <tr>

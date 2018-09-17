@@ -3,9 +3,9 @@
 /**
  *
  * 作成日：2018/08/14
- * 更新日：
+ * 更新日：2018/09/17
  * 作成者：戸田滉洋
- * 更新者：
+ * 更新者：戸田滉洋
  *
  */
 
@@ -143,5 +143,25 @@ class Model_analysis extends \orm\Model
         $query = \DB::query($sql)->execute()->current();
         $data =$query;
         return $data;
+    }
+
+    // 分析用詳細表の合計の使用電力量を取得
+    public static function getTotalElectric($str_id, $starttime, $endtime)
+    {
+        $sql = "SELECT electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$starttime' AND '$endtime'";
+        $query = \DB::query($sql)->execute();
+        $total_electric = Model_analysis::calTotalElectric($query);
+        return $total_electric;
+    }
+
+    // 分析用詳細表の合計使用電力量をお計算
+    private static function calTotalElectric($query)
+    {
+        $data = $query;
+        $totaldata = 0;
+        foreach ($data as $key => $val) {
+            $totaldata = $totaldata + $val['electric_kw'];
+        }
+        return $totaldata;
     }
 }

@@ -3,9 +3,9 @@
 /**
  *
  * 作成日：2018/09/16
- * 更新日：
+ * 更新日：2018/09/17
  * 作成者：戸田滉洋
- * 更新者：
+ * 更新者：戸田滉洋
  *
  */
 
@@ -19,7 +19,7 @@ class Controller_Electric_analysisinfo extends Controller
 {
     public function before()
     {
-        //未ログインの場合、ログインページにリダイレクト
+        // 未ログインの場合、ログインページにリダイレクト
         if (!Auth::check()) {
             Response::redirect('admin/login');
         }
@@ -27,12 +27,7 @@ class Controller_Electric_analysisinfo extends Controller
 
     public function action_index()
     {
-
-        //日付フォームの値を取得
-        // $param = \Input::post();
-        // $starttime = \Arr::get($param, 'starttime', null);
-        // $endtime = \Arr::get($param, 'endtime', null);
-        //日付の取得
+        // 日付の取得
         if (Input::method() == 'POST') {
             $starttime = Input::post('starttime');
             // Debug::dump($starttime);
@@ -86,10 +81,14 @@ class Controller_Electric_analysisinfo extends Controller
         $demand_array = Model_analysis::total_analysisinfo($today, $date_array, $demand);
         $electirc_m_array = Model_analysis::total_analysisinfo($today, $date_array, $electric_m);
 
-        // $totaldata = Model_analysis::all_analysisinfo($today, $date_array, $electric_array, $demand_array);
-        // Debug::dump($electric_array);
-        // Debug::dump($demand_array);
-        //viewに送るデータを連想配列で作成
+        // 使用電力量の合計値を取得
+        $total_electric = Model_analysis::getTotalElectric($strId, $starttime, $endtime);
+
+        // CO2排出係数の取得
+        $efcotor = Model_basicinfo::getEfactor();
+        $emission_factor = $efcotor['emission_factor'];
+    
+        // viewに送るデータを連想配列で作成
         $data = array();
         $data['starttime'] = $starttime;
         $data['endtime'] = $endtime;
@@ -97,17 +96,18 @@ class Controller_Electric_analysisinfo extends Controller
         $data['electric_data'] = $electirc_m_array;
         $data['demand'] = $demand_array;
         $data['date_array'] = $date_array;
-        //一日分のデータを取得
-        //テーマのインスタンス化
+        $data['total_electric'] = $total_electric;
+        $data['emission_factor'] = $emission_factor;
+
+        // テーマのインスタンス化
         $theme = \Theme::forge();
-        //テーマにテンプレートのセット
+        // テーマにテンプレートのセット
         $theme->set_template('template');
-        //テーマのテンプレートにタイトルをセット
+        // テーマのテンプレートにタイトルをセット
         $theme->get_template()->set('title', 'MIETARO');
-        //テーマのテンプレートにビューとページデータをセット
-        // $theme->get_template()->set('content', $theme->view('electric/analysisinfo')->set('electricData', $result));
+        // テーマのテンプレートにビューとページデータをセット
         $theme->get_template()->set('content', $theme->view('electric/analysisinfo', $data));
-        //テーマのテンプレートにビューとページデータをセット
+        // テーマのテンプレートにビューとページデータをセット
         $theme->get_template()->set('sidebar', $theme->view('sidebar'));
 
         return $theme;

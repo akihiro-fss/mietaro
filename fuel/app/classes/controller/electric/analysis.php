@@ -68,7 +68,7 @@ class Controller_Electric_Analysis extends Controller
         }
         // 開始時間から終了時間までのデータの取得
         $totaldata = Model_analysis::analysisdata($str_id, $starttime, $endtime);
-
+        
         // 連想配列で日付及び分析用のデータ配列作成
         $count_date_array = count($date_array);
         for ($i = 0; $i < $count_date_array; ++$i) {

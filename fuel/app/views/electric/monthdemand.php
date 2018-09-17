@@ -30,7 +30,7 @@
 
 <?php echo Form::open(array('name' => 'search', 'method' => 'post', 'class' => 'form-horizontal')); ?>
 <table>
-<tr><th align="left">指定した日付の月の</br>使用電力情報が表示されます</th><th></tr></tr>
+<tr><th align="left">指定した日付の月の<br/>使用電力情報が表示されます</th></tr>
 <tr>
     <th valign="top">
         <?php echo Form::input('onemonthdate', 'onemonthdate', array('type' => 'date')); ?>
@@ -39,9 +39,9 @@
     <td>
         <ul style="list-style:none;">
             <li><b>使用電力量</b>　　　<span id="total_set_1"></span>kwh </li>
-            <li><b>最大デマンド値</b>　<span id="max_demand_1"></span>kW  </li>
-            <li><b>CO2排出量</b>　　　-kg-CO2 </li>
-            <li><b>電力量料金</b>　　　-円 </li>
+            <li><b>最大デマンド値</b> 　<span id="max_demand_1"></span>kW </li>
+            <li><b>CO2排出量</b>　　　<span id="total_emission_1"></span>kg-CO2 </li>
+            <li><b>電力量料金</b>　　　<span id="total_price_1"></span>円 </li>
         </ul>
     </td>
 </tr>
@@ -58,9 +58,9 @@
     <td>
         <ul style="list-style:none;">
             <li><b>使用電力量</b>　　　<span id="total_set_2"></span>kwh </li>
-            <li><b>最大デマンド値</b>　<span id="max_demand_2"></span>kW  </li>
-            <li><b>CO2排出量</b>　　　-kg-CO2 </li>
-            <li><b>電力量料金</b>　　　-円 </li>
+            <li><b>最大デマンド値</b> 　<span id="max_demand_2"></span>kW </li>
+            <li><b>CO2排出量</b>　　　<span id="total_emission_2"></span>kg-CO2 </li>
+            <li><b>電力量料金</b>　　　<span id="total_price_2"></span>円 </li>
         </ul>
     </td>
 </tr>
@@ -81,13 +81,17 @@
 
 <script>
     var monthData = <?php echo json_encode($monthData); ?>;
-    var month = monthData['result']['result_demand'];
-    var total1 = monthData['result']['total_one_month'];
-    var total2 = monthData['result']['total_two_month'];
-    var max1 = monthData['result']['max_demand_one_month'];
-    var max2 = monthData['result']['max_demand_two_month'];
+    var month = monthData['result_demand'];
+    var total1 = monthData['total_set_1'];
+    var total2 = monthData['total_set_2'];
+    var max1 = monthData['max_demand_1'];
+    var max2 = monthData['max_demand_2'];
     var targetDate1 = monthData['target_date_1'];
     var targetDate2 = monthData['target_date_2'];
+    var emission1 = monthData['total_emission_1'];
+    var emission2 = monthData['total_emission_2'];
+    var price1 = monthData['total_price_1'];
+    var price2 = monthData['total_price_2'];
     var checked_flg = monthData['checked_flg'];
 
     //電力量合計値セット
@@ -96,6 +100,12 @@
     //デマンド最大値セット
     $('#max_demand_1').append(max1);
     $('#max_demand_2').append(max2);
+    //CO2排出量セット
+    $('#total_emission_1').append(emission1);
+    $('#total_emission_2').append(emission2);
+    //電力量料金セット
+    $('#total_price_1').append(price1);
+    $('#total_price_2').append(price2);
 
     $('#form_onemonthdate').val(targetDate1);
     $('#form_twomonthdate').val(targetDate2);

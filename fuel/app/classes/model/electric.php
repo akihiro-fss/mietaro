@@ -56,15 +56,15 @@ class Model_Electric extends \orm\Model {
     /**
      * 平均値計算用SELECTメソッド
      */
-    private static function selectAverageElectricData($str_id, $start, $end) {
-        $sql = "SELECT AVG(electric_kw) as 'avg_electric_kw' FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
-        return \DB::query($sql)->execute()->current();
+    private static function selectElectricDataOneRecode($str_id, $start, $end) {
+        $sql = "SELECT electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
+        return \DB::query($sql)->execute()->as_array();
     }
     /**
      * 平均値計算用(demand_kw用)SELECTメソッド
      */
-    private static function selectAverageDemandData($str_id, $start, $end) {
-        $sql = "SELECT AVG(demand_kw) as 'avg_demand_kw' FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
+    private static function selectDemandData($str_id, $start, $end) {
+        $sql = "SELECT MAX(demand_kw) as 'demand_kw' FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
         return \DB::query($sql)->execute()->current();
     }
 
@@ -74,6 +74,14 @@ class Model_Electric extends \orm\Model {
     private static function selectElectricDataForMonth($str_id, $start, $end) {
         $sql = "SELECT electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id AND electric_at >= '$start' AND electric_at < '$end'";
         return \DB::query($sql)->execute()->as_array();
+    }
+
+    /**
+     * 店舗の基本情報取得
+     */
+    private static function selectBasicInfoForStrId($str_id){
+    	$sql = "SELECT * FROM basicInfo WHERE str_id = $str_id";
+    	return \DB::query($sql)->execute()->current();
     }
 
     /**
@@ -103,21 +111,30 @@ class Model_Electric extends \orm\Model {
                 }
             }
             $oneday_st = date('Y-m-d 00:00:00', strtotime($onedaydate));
-            $oneday_end = date('Y/m/d 23:59:59', strtotime($onedaydate));
+            //$oneday_end = date('Y/m/d 23:59:59', strtotime($onedaydate));
             $twoday_st = date('Y/m/d 00:00:00', strtotime($twodaydate));
-            $twoday_end = date('Y/m/d 23:59:59', strtotime($twodaydate));
+            //$twoday_end = date('Y/m/d 23:59:59', strtotime($twodaydate));
         } else {
             $oneday_st = date("Y/m/d 00:00:00");
-            $oneday_end = date("Y/m/d 23:59:59");
+            //$oneday_end = date("Y/m/d 23:59:59");
             $twoday_st = date('Y/m/d 00:00:00', strtotime('-1 days'));
-            $twoday_end = date('Y/m/d 23:59:59', strtotime('-1 days'));
+            //$twoday_end = date('Y/m/d 23:59:59', strtotime('-1 days'));
         }
         //Authのインスタンス化
         $auth = Auth::instance();
         $str_id = $auth->get_str_id();
 
+        //店舗の基本情報取得
+        $strData = self::selectBasicInfoForStrId($str_id);
+
+        //CO2排出係数
+        $emisionFactor = (float)$strData['emission_factor'];
+
+        //原油換算係数
+        $conversionFactor = (float)$strData['conversion_factor'];
+
         //第一指定日の電力量データ取得
-        $result_oneday = self::calcOnedayAverageDate($str_id,$oneday_st);
+        $result_oneday = self::calcOnedayData($str_id,$oneday_st);
 
         //第二指定日の電力量データ取得
         $result_twoday = array(
@@ -126,7 +143,7 @@ class Model_Electric extends \orm\Model {
         );
 
         if(!is_null($secondGraphFlg)){
-            $tmp_result = self::calcOnedayAverageDate($str_id,$twoday_st);
+            $tmp_result = self::calcOnedayData($str_id,$twoday_st);
             $result_twoday = array(
                 'result' => $tmp_result['result'],
                 'total' => $tmp_result['total']
@@ -137,7 +154,7 @@ class Model_Electric extends \orm\Model {
         }
 
         //第一指定日のデマンドデータ取得
-        $result_demand_oneday = self::calcOnedayDemandAverageDate($str_id,$oneday_st);
+        $result_demand_oneday = self::calcOnedayDemandData($str_id,$oneday_st);
 
         //第二指定日のデマンドデータ取得
         $result_demand_twoday = array(
@@ -145,7 +162,7 @@ class Model_Electric extends \orm\Model {
             'max_demand' => 0
         );
         if($secondGraphFlg){
-            $tmp_result = self::calcOnedayDemandAverageDate($str_id,$twoday_st);
+            $tmp_result = self::calcOnedayDemandData($str_id,$twoday_st);
             $result_demand_twoday = array(
                 'result' => $tmp_result['result'],
                 'max_demand' => $tmp_result['max_demand']
@@ -173,7 +190,12 @@ class Model_Electric extends \orm\Model {
             'total_set_2' => $result_twoday['total'],
             'max_demand_1' => $result_demand_oneday['max_demand'],
             'max_demand_2' => $result_demand_twoday['max_demand'],
+        	'total_emission_1' => floor($result_oneday['total'] * $emisionFactor),
+        	'total_emission_2' => floor($result_twoday['total'] * $emisionFactor),
+        	'total_price_1' => floor($result_oneday['total'] * $conversionFactor),
+        	'total_price_2' => floor($result_twoday['total'] * $conversionFactor),
         );
+
         return $resultsArray;
     }
 
@@ -208,6 +230,16 @@ class Model_Electric extends \orm\Model {
         //Authのインスタンス化
         $auth = Auth::instance();
         $str_id = $auth->get_str_id();
+
+        //店舗の基本情報取得
+        $strData = self::selectBasicInfoForStrId($str_id);
+
+        //CO2排出係数
+        $emisionFactor = (float)$strData['emission_factor'];
+
+        //原油換算係数
+        $conversionFactor = (float)$strData['conversion_factor'];
+
         $result_a_week = Model_Electric::selectElectricData($str_id, $week_st, $week_end);
         $result_a_week_ago = array();
         if(!is_null($secondGraphFlg)){
@@ -219,6 +251,7 @@ class Model_Electric extends \orm\Model {
             $checkedFlg = 0;
         }
         $result = Model_Electric::convertDataForWeek($result_a_week,$result_a_week_ago,$weekdate,$twoweekdate);
+
         return array(
             'target_date_1' => $weekdate,
             'target_date_2' => $twoweekdate,
@@ -227,6 +260,12 @@ class Model_Electric extends \orm\Model {
             'two_week' => $result['two_week'],
             'total_set_1' => $result['total_one_week'],
             'total_set_2' => $result['total_two_week'],
+        	'max_demand_1' => $result['max_demand_one_week'],
+        	'max_demand_2' => $result['max_demand_two_week'],
+        	'total_emission_1' => floor($result['total_one_week'] * $emisionFactor),
+        	'total_emission_2' => floor($result['total_two_week'] * $emisionFactor),
+        	'total_price_1' => floor($result['total_one_week'] * $conversionFactor),
+        	'total_price_2' => floor($result['total_two_week'] * $conversionFactor),
         );
     }
 
@@ -241,7 +280,7 @@ class Model_Electric extends \orm\Model {
             $onemonthdate = Input::post('onemonthdate');
             if(empty($onemonthdate)){
                 $onemonthdate = Input::post('param_date_1');
-                if(empty($onedaydate)){
+                if(empty($onemonthdate)){
                     $onemonthdate = date('Y-m-d');
                 }
             }
@@ -268,6 +307,16 @@ class Model_Electric extends \orm\Model {
         //Authのインスタンス化
         $auth = Auth::instance();
         $str_id = $auth->get_str_id();
+
+        //店舗の基本情報取得
+        $strData = self::selectBasicInfoForStrId($str_id);
+
+        //CO2排出係数
+        $emisionFactor = (float)$strData['emission_factor'];
+
+        //原油換算係数
+        $conversionFactor = (float)$strData['conversion_factor'];
+
         $result_a_month = Model_Electric::selectElectricData($str_id, $month_st, $month_end);
         $result_a_month_ago=array();
         if($secondGraphFlg){
@@ -279,11 +328,23 @@ class Model_Electric extends \orm\Model {
             $checkedFlg = 0;
         }
         $result = Model_Electric::convertDataForMonth($result_a_month,$result_a_month_ago,$month_st,$month_end,$month_ago_st,$month_ago_end,$checkedFlg);
+
+
+
         return array(
-            'target_date_1' => $onemonthdate,
-            'target_date_2' => $twomonthdate,
-            'checked_flg' => $checkedFlg,
-            'result' => $result,
+        	'result' => $result['result'],
+        	'result_demand' => $result['result_demand'],
+        	'target_date_1' => $onemonthdate,
+        	'target_date_2' => $twomonthdate,
+        	'checked_flg' => $checkedFlg,
+        	'total_set_1' => $result['total_one_month'],
+        	'total_set_2' => $result['total_two_month'],
+        	'max_demand_1' => $result['max_demand_one_month'],
+        	'max_demand_2' => $result['max_demand_two_month'],
+        	'total_emission_1' => floor($result['total_one_month'] * $emisionFactor),
+        	'total_emission_2' => floor($result['total_two_month'] * $emisionFactor),
+        	'total_price_1' => floor($result['total_one_month'] * $conversionFactor),
+        	'total_price_2' => floor($result['total_two_month'] * $conversionFactor),
         );
     }
 
@@ -326,6 +387,16 @@ class Model_Electric extends \orm\Model {
         //Authのインスタンス化
         $auth = Auth::instance();
         $str_id = $auth->get_str_id();
+
+        //店舗の基本情報取得
+        $strData = self::selectBasicInfoForStrId($str_id);
+
+        //CO2排出係数
+        $emisionFactor = (float)$strData['emission_factor'];
+
+        //原油換算係数
+        $conversionFactor = (float)$strData['conversion_factor'];
+
         $result_one_years = Model_Electric::selectElectricData($str_id, $oneYearsdate_st, $oneYearsdate_end);
         $result_two_years=array();
         if($secondGraphFlg){
@@ -346,6 +417,10 @@ class Model_Electric extends \orm\Model {
             'total_set_2' => $result['total_two_year'],
             'max_demand_1' => $result['max_demand_one_year'],
             'max_demand_2' => $result['max_demand_two_year'],
+        	'total_emission_1' => floor($result['total_one_year'] * $emisionFactor),
+        	'total_emission_2' => floor($result['total_two_year'] * $emisionFactor),
+        	'total_price_1' => floor($result['total_one_year'] * $conversionFactor),
+        	'total_price_2' => floor($result['total_two_year'] * $conversionFactor),
         );
     }
 
@@ -366,7 +441,7 @@ class Model_Electric extends \orm\Model {
      * @access datetime Y-m-d 00:00:0
      * @return arrayobject
      */
-    public static function calcOnedayAverageDate($str_id,$datetime){
+    public static function calcOnedayData($str_id,$datetime){
         $start = $datetime;
         //配列のキーとなる値の初期化
         $key = 0.5;
@@ -384,14 +459,18 @@ class Model_Electric extends \orm\Model {
             //計算範囲から29分59秒足したものを範囲の終わりに設定する
             $end = date("Y-m-d H:i:s",strtotime($start . "+29 minute +59 seconds"));
             //平均値取得
-            $result = Model_Electric::selectAverageElectricData($str_id, $start, $end);
+            $result = Model_Electric::selectElectricDataOneRecode($str_id, $start, $end);
+            $electricKw = 0;
+            foreach ($result as $calcData){
+            	$electricKw += $calcData['electric_kw'];
+            }
             //配列を作成
             $tmp_array = array(
                 0 => ($key * $count).'h',
-                1 => (int)$result['avg_electric_kw']
+            	1 => $electricKw
             );
             //合計値加算
-            $total += (int)$result['avg_electric_kw'];
+            $total += $electricKw;
             //配列のキーを加算
             $count++;
             //結果用配列にプッシュ
@@ -415,7 +494,7 @@ class Model_Electric extends \orm\Model {
      * @access datetime Y-m-d 00:00:0
      * @return arrayobject
      */
-    public static function calcOnedayDemandAverageDate($str_id,$datetime){
+    public static function calcOnedayDemandData($str_id,$datetime){
         $start = $datetime;
         //配列のキーとなる値の初期化
         $key = 0.5;
@@ -434,17 +513,17 @@ class Model_Electric extends \orm\Model {
             //計算範囲から29分59秒足したものを範囲の終わりに設定する
             $end = date("Y-m-d H:i:s",strtotime($start . "+29 minute +59 seconds"));
             //平均値取得
-            $result = Model_Electric::selectAverageDemandData($str_id, $start, $end);
+            $result = Model_Electric::selectDemandData($str_id, $start, $end);
             //配列を作成
             $tmp_array = array(
                 0 => ($key * $count).'h',
-                1 => (int)$result['avg_demand_kw']
+                1 => (int)$result['demand_kw']
             );
             //合計値加算
-            $total += (int)$result['avg_demand_kw'];
+            $total += (int)$result['demand_kw'];
             //最大値を保持
-            if($max <= (int)$result['avg_demand_kw']){
-                $max = (int)$result['avg_demand_kw'];
+            if($max <= (int)$result['demand_kw']){
+                $max = (int)$result['demand_kw'];
             }
             //配列のキーを加算
             $count++;
@@ -476,6 +555,9 @@ class Model_Electric extends \orm\Model {
         //合計値用
         $totalOneWeek = 0;
         $totalTwoWeek = 0;
+        //最大デマンド値
+        $maxDemandOneWeek = 0;
+        $maxDemandTwoWeek = 0;
 
         //一週間分の日付
         $date1Array = array(
@@ -500,6 +582,30 @@ class Model_Electric extends \orm\Model {
             array(date('Y-m-d',strtotime($targetdate2)),array()),
         );
 
+        //各日の最大デマンド値・発生時刻保持用配列
+        $demandArray1 = array(
+        	array("",),
+        	array(date('Y-m-d',strtotime("-6 days $targetdate1")),array('demand_kw' => 0,'electric_at' => "-")),
+        	array(date('Y-m-d',strtotime("-5 days $targetdate1")),array('demand_kw' => 0,'electric_at' => "-")),
+        	array(date('Y-m-d',strtotime("-4 days $targetdate1")),array('demand_kw' => 0,'electric_at' => "-")),
+        	array(date('Y-m-d',strtotime("-3 days $targetdate1")),array('demand_kw' => 0,'electric_at' => "-")),
+        	array(date('Y-m-d',strtotime("-2 days $targetdate1")),array('demand_kw' => 0,'electric_at' => "-")),
+        	array(date('Y-m-d',strtotime("-1 days $targetdate1")),array('demand_kw' => 0,'electric_at' => "-")),
+        	array(date('Y-m-d',strtotime($targetdate1)),array('demand_kw' => 0,'electric_at' => "-")),
+        );
+        $demandArray2 = array(
+        	array("",),
+        	array(date('Y-m-d',strtotime("-6 days $targetdate2")),array('demand_kw' => 0,'electric_at' => "-")),
+        	array(date('Y-m-d',strtotime("-5 days $targetdate2")),array('demand_kw' => 0,'electric_at' => "-")),
+        	array(date('Y-m-d',strtotime("-4 days $targetdate2")),array('demand_kw' => 0,'electric_at' => "-")),
+        	array(date('Y-m-d',strtotime("-3 days $targetdate2")),array('demand_kw' => 0,'electric_at' => "-")),
+        	array(date('Y-m-d',strtotime("-2 days $targetdate2")),array('demand_kw' => 0,'electric_at' => "-")),
+        	array(date('Y-m-d',strtotime("-1 days $targetdate2")),array('demand_kw' => 0,'electric_at' => "-")),
+        		array(date('Y-m-d',strtotime($targetdate2)),array('demand_kw' => 0,'electric_at' => "-")),
+        );
+
+
+
         //計算処理軽減のため抽出結果を整形
         foreach($result_one_week_ago as $tmpData){
             foreach($date1Array as $key=>$search){
@@ -509,6 +615,7 @@ class Model_Electric extends \orm\Model {
                 }
             }
         }
+
         foreach($result_two_week_ago as $tmpData){
             foreach($date2Array as $key=>$search){
                 if($key == 0){continue;}
@@ -526,71 +633,122 @@ class Model_Electric extends \orm\Model {
         $calcArray = self::getCalcArrayForWeekData();
 
         //平均値算出用の配列
-        $countArray = $result1;
+//        $countArray = $result1;
 
         //日毎の電力計算処理
         foreach($date1Array as $index=>$tmpArray){
             if($index == 0){continue;}
             $targetDate = $tmpArray[0];
+            $max_demand = 0;
+            $max_demand_at = null;
             foreach($tmpArray[1] as $calcTargetData ){
                 foreach($calcArray as $calcData){
-                        $startDatetime = strtotime($targetDate.' '.$calcData['start_time']);
-                        $endtDatetime = strtotime($targetDate.' '.$calcData['end_time']);
-                        $targetTime = strtotime($calcTargetData['electric_at']);
-                        if(($targetTime >= $startDatetime)&&($targetTime <= $endtDatetime)){
-                            $result1[$calcData['index']][$index] += intVal($calcTargetData['electric_kw']);
-                            $countArray[$calcData['index']][$index]++;
+                    $startDatetime = strtotime($targetDate.' '.$calcData['start_time']);
+                    $endtDatetime = strtotime($targetDate.' '.$calcData['end_time']);
+                    $targetTime = strtotime($calcTargetData['electric_at']);
+                    if(($targetTime >= $startDatetime)&&($targetTime <= $endtDatetime)){
+                    	//日ごとの配列に加算
+                       	$result1[$calcData['index']][$index] += $calcTargetData['electric_kw'];
+                        //1週間の合計電力量加算
+                        $totalOneWeek += $calcTargetData['electric_kw'];
+                        //デマンドの最大値を計算
+                        if($calcTargetData['demand_kw'] > $max_demand){
+                        	$max_demand = $calcTargetData['demand_kw'];
+                        	$max_demand_at = $calcTargetData['electric_at'];
                         }
+                        //週間の最大デマンド値保持
+                        if($maxDemandOneWeek < $max_demand){
+                        	$maxDemandOneWeek = $max_demand;
+                        }
+//                      $countArray[$calcData['index']][$index]++;
+                    }
+                    //各日の最大デマンド値と発生日時を保持
+                    $demandArray1[$index][1]['demand_kw'] = $max_demand;
+                    //日付フォーマットを（H:i)に変換
+                    if($max_demand_at != null){
+                    	$demandArray1[$index][1]['electric_at'] = date('H:i',strtotime($max_demand_at));
+                    }else{
+                    	//phpの表示バグ対応
+                    	$demandArray1[$index][1]['electric_at'] = '-';
+                    }
                 }
             }
         }
         //平均値算出
-        foreach($countArray as $index=>$arrayData){
-            if($index == 0){continue;}
-            foreach($arrayData as $key=>$data){
-                if($key == 0){continue;}
-                if($data == 0){continue;}
-                $result1[$index][$key] = (int)($result1[$index][$key] / $data);
-                $totalOneWeek += (int)$result1[$index][$key];
-            }
-        }
+//         foreach($countArray as $index=>$arrayData){
+//             if($index == 0){continue;}
+//             foreach($arrayData as $key=>$data){
+//                 if($key == 0){continue;}
+//                 if($data == 0){continue;}
+// //                $result1[$index][$key] = (int)($result1[$index][$key] / $data);
+//                 $totalOneWeek += (int)$result1[$index][$key];
+//             }
+//         }
 
         //平均値算出用の配列
-        $countArray = $result2;
+//        $countArray = $result2;
         //日毎の電力計算処理
         foreach($date2Array as $index=>$tmpArray){
             if($index == 0){continue;}
             $targetDate = $tmpArray[0];
+            $max_demand = 0;
+            $max_demand_at = null;
             foreach($tmpArray[1] as $calcTargetData ){
                 foreach($calcArray as $calcData){
-                        $startDatetime = strtotime($targetDate.' '.$calcData['start_time']);
-                        $endtDatetime = strtotime($targetDate.' '.$calcData['end_time']);
-                        $targetTime = strtotime($calcTargetData['electric_at']);
-                        if(($targetTime >= $startDatetime)&&($targetTime <= $endtDatetime)){
-                            $result2[$calcData['index']][$index] += intVal($calcTargetData['electric_kw']);
-                            $countArray[$calcData['index']][$index]++;
+                	$startDatetime = strtotime($targetDate.' '.$calcData['start_time']);
+                    $endtDatetime = strtotime($targetDate.' '.$calcData['end_time']);
+                    $targetTime = strtotime($calcTargetData['electric_at']);
+                    if(($targetTime >= $startDatetime)&&($targetTime <= $endtDatetime)){
+                    	//日ごとの配列に加算
+                        $result2[$calcData['index']][$index] += intVal($calcTargetData['electric_kw']);
+                        //1週間の合計電力量加算
+                        $totalTwoWeek += intVal($calcTargetData['electric_kw']);
+//                      $countArray[$calcData['index']][$index]++;
+                        //デマンドの最大値を計算
+                        if($calcTargetData['demand_kw'] > $max_demand){
+                        	$max_demand = $calcTargetData['demand_kw'];
+                        	$max_demand_at = $calcTargetData['electric_at'];
+                        }
+                        //週間の最大デマンド値保持
+                        if($maxDemandTwoWeek < $max_demand){
+                        	$maxDemandTwoWeek = $max_demand;
                         }
                     }
+                    //各日の最大デマンド値と発生日時を保持
+                    $demandArray2[$index][1]['demand_kw'] = $max_demand;
+                    //日付フォーマットを（H:i)に変換
+                    if($max_demand_at != null){
+                    	$demandArray2[$index][1]['electric_at'] = date('H:i',strtotime($max_demand_at));
+                    }else{
+                    	//phpの表示バグ対応
+                    	$demandArray2[$index][1]['electric_at'] = '-';
+                    }
+                }
             }
         }
 
-        //平均値算出
-        foreach($countArray as $index=>$arrayData){
-            if($index == 0){continue;}
-            foreach($arrayData as $key=>$data){
-                if($key == 0){continue;}
-                if($data == 0){continue;}
-                $result2[$index][$key] = (int)($result2[$index][$key] / $data);
-                $totalTwoWeek += (int)$result1[$index][$key];
-            }
-        }
+//         foreach($countArray as $index=>$arrayData){
+//             if($index == 0){continue;}
+//             foreach($arrayData as $key=>$data){
+//                 if($key == 0){continue;}
+//                 if($data == 0){continue;}
+// //                $result2[$index][$key] = (int)($result2[$index][$key] / $data);
+//                 $totalTwoWeek += (int)$result1[$index][$key];
+//             }
+//         }
+
+
 
         return array(
             'one_week' => $result1,
+        	'one_week_demand' => $demandArray1,
             'total_one_week' => $totalOneWeek,
+        	'max_demand_one_week' => $maxDemandOneWeek,
             'two_week' => $result2,
+        	'two_week_demand' => $demandArray2,
             'total_two_week' => $totalTwoWeek,
-                );
+        	'max_demand_two_week' => $maxDemandTwoWeek,
+        );
     }
 
     /**
@@ -605,8 +763,9 @@ class Model_Electric extends \orm\Model {
         $totalOneMonth = 0;
         $totalTwoMonth = 0;
         //最大値保持用
-        $maxDemandOneMonth = 0;
-        $maxDemandTwoMonth = 0;
+        $max_demand_1 = 0;
+        $max_demand_2 = 0;
+
 
         $day = date('j',strtotime($month_st));
         $end1 = date('j',strtotime($month_end));
@@ -628,9 +787,13 @@ class Model_Electric extends \orm\Model {
             $demandArray = array(
                 array("",date('n',strtotime($month_st))."月デマンド値",date('n',strtotime($month_ago_st))."月デマンド値"),
             );
+            $demandTriggerArray = array(
+            		array("",date('n',strtotime($month_st))."月デマンド値発生日時",date('n',strtotime($month_ago_st))."月デマンド値発生日時"),
+            );
             for($i=$day;$i <= $end;$i++){
                 array_push($date1Array,array("$i",0,0));
                 array_push($demandArray,array("$i",0,0));
+                array_push($demandTriggerArray,array("$i",null,null));
             }
         }else{
             $date1Array = array(
@@ -639,18 +802,20 @@ class Model_Electric extends \orm\Model {
             $demandArray = array(
                 array("",date('n',strtotime($month_st))."月デマンド値"),
             );
+            $demandTriggerArray = array(
+            		array("",date('n',strtotime($month_st))."月デマンド値発生日時"),
+            );
             for($i=$day;$i <= $end;$i++){
                 array_push($date1Array,array("$i",0));
                 array_push($demandArray,array("$i",0));
+                array_push($demandTriggerArray,array("$i",null));
             }
         }
 
         //計算処理軽減のため抽出結果を整形
         $targetDate1 = date('Y-m-d',strtotime($month_st));
         $targetDate2 = date('Y-m-d',strtotime($month_ago_st));
-        //最大値計算用
-        $max_demand_1 = 0;
-        $max_demand_2 = 0;
+
         foreach($date1Array as $index=>$date){
             if($index == 0){ continue;}
             //平均値計算用
@@ -658,38 +823,40 @@ class Model_Electric extends \orm\Model {
             $count2 = 0;
             $demand_count1 = 0;
             $demand_count2 = 0;
+            $max_demand_at_1 = null;
+            $max_demand_at_2 = null;
 
-            foreach($result_one_month_ago as $tmpData1){
-                if(strpos($tmpData1['electric_at'],$targetDate1) !== FALSE){
+            foreach($result_one_month_ago as $tmpData){
+                if(strpos($tmpData['electric_at'],$targetDate1) !== FALSE){
                    //電力計算
-                   if(intVal($tmpData1['electric_kw']) > 0){
-                       $date1Array[$index][1] += intVal($tmpData1['electric_kw']);
+                   if(intVal($tmpData['electric_kw']) > 0){
+                       $date1Array[$index][1] += intVal($tmpData['electric_kw']);
                        $count1++;
                    }
                    //デマンド計算
-                   if(intVal($tmpData1['demand_kw']) > 0){
-                       $demandArray[$index][1] += intVal($tmpData1['demand_kw']);
+                   if(intVal($tmpData['demand_kw']) > 0){
                        $demand_count1++;
-                       if(intVal($tmpData1['demand_kw']) > $max_demand_1){
-                           $max_demand_1 = intVal($tmpData1['demand_kw']);
+                       if(intVal($tmpData['demand_kw']) > $max_demand_1){
+                           $max_demand_1 = intVal($tmpData['demand_kw']);
+                           $max_demand_at_1 = $tmpData['electric_at'];
                        }
                    }
                 }
             }
 
-            foreach($result_two_month_ago as $tmpData2){
-               if(strpos($tmpData2['electric_at'],$targetDate2) !== FALSE){
+            foreach($result_two_month_ago as $tmpData){
+               if(strpos($tmpData['electric_at'],$targetDate2) !== FALSE){
                    //電力計算
-                   if(intVal($tmpData2['electric_kw']) > 0){
-                       $date1Array[$index][2] += intVal($tmpData2['electric_kw']);
+                   if(intVal($tmpData['electric_kw']) > 0){
+                       $date1Array[$index][2] += intVal($tmpData['electric_kw']);
                        $count2++;
                    }
                    //デマンド計算
-                   if(intVal($tmpData2['demand_kw']) > 0){
-                       $demandArray[$index][2] += intVal($tmpData2['demand_kw']);
+                   if(intVal($tmpData['demand_kw']) > 0){
                        $demand_count2++;
-                       if(intVal($tmpData2['demand_kw']) > $max_demand_2){
-                           $max_demand_2 = intVal($tmpData2['demand_kw']);
+                       if(intVal($tmpData['demand_kw']) > $max_demand_2){
+                           $max_demand_2 = intVal($tmpData['demand_kw']);
+                           $max_demand_at_2 = $tmpData['electric_at'];
                        }
                    }
                }
@@ -704,6 +871,7 @@ class Model_Electric extends \orm\Model {
             if($demand_count1 > 0){
                 //デマンド
                 $demandArray[$index][1] = $max_demand_1;
+                $demandTriggerArray[$index][1] = $max_demand_at_1;
             }
             if($count2 > 0){
                 //電力
@@ -714,6 +882,7 @@ class Model_Electric extends \orm\Model {
             if($demand_count2 > 0){
                 //デマンド
                 $demandArray[$index][2] = $max_demand_2;
+                $demandTriggerArray[$index][2] = $max_demand_at_2;
             }
 
             $targetDate1 = date('Y-m-d',strtotime('+1 days'.$targetDate1));
@@ -725,6 +894,7 @@ class Model_Electric extends \orm\Model {
             'total_one_month' => $totalOneMonth,
             'total_two_month' => $totalTwoMonth,
             'result_demand' => $demandArray,
+        	'result_demand_at' => $demandTriggerArray,
             'max_demand_one_month' => $max_demand_1,
             'max_demand_two_month' => $max_demand_2,
         );
@@ -738,8 +908,13 @@ class Model_Electric extends \orm\Model {
      */
     public static function convertDataForYear($result_one_years,$result_two_years,$oneYearsdate_st,$twoYearsdate_st,$checkedFlg){
 
+    	//合計値量
         $totalOneYear = 0;
         $totalTwoYear = 0;
+
+        //デマンド最大値保持用
+        $demandMax1 = 0;
+        $demandMax2 = 0;
 
         //dateArrayの各要素の配列の0番目の要素が日付、1番目は当年、2番目は前年の電力量用
         if($checkedFlg){
@@ -749,12 +924,16 @@ class Model_Electric extends \orm\Model {
             $demandArray = array(
                 array("",date('Y',strtotime($oneYearsdate_st))."年デマンド値",date('Y',strtotime($twoYearsdate_st))."年デマンド値"),
             );
+            $demandTriggerArray = array(
+            		array("",date('n',strtotime($oneYearsdate_st))."デマンド値発生日時",date('n',strtotime($twoYearsdate_st))."年デマンド値発生日時"),
+            );
             for($i = 1;$i <= 12;$i++){
                 if($i < 10){
                     $i = "0".$i;
                 }
                 array_push($dateArray,array("$i",0,0));
                 array_push($demandArray,array("$i",0,0));
+                array_push($demandTriggerArray,array("$i",null,null));
             }
         }else{
             $dateArray = array(
@@ -763,21 +942,21 @@ class Model_Electric extends \orm\Model {
             $demandArray = array(
                 array("",date('Y',strtotime($oneYearsdate_st))."年デマンド値"),
             );
+            $demandTriggerArray = array(
+            		array("",date('n',strtotime($oneYearsdate_st))."デマンド値発生日時",),
+            );
             for($i = 1;$i <= 12;$i++){
                 if($i < 10){
                     $i = "0".$i;
                 }
                 array_push($dateArray,array("$i",0));
                 array_push($demandArray,array("$i",0));
+                array_push($demandTriggerArray,array("$i",null));
             }
         }
 
         //平均値計算用配列
         $calcArray = $dateArray;
-
-        //デマンド最大値保持用
-        $demandMax1 = 0;
-        $demandMax2 = 0;
 
         //電力量計算
         foreach($result_one_years as $tmpData){
@@ -791,6 +970,7 @@ class Model_Electric extends \orm\Model {
                     //デマンド
                     if($demandArray[$index][1] < intVal($tmpData['demand_kw'])){
                         $demandArray[$index][1] = intVal($tmpData['demand_kw']);
+                        $demandTriggerArray[$index][1] = $tmpData['electric_at'];
                     }
                     if($demandMax1 < $demandArray[$index][1]){
                         $demandMax1 = $demandArray[$index][1];
@@ -810,6 +990,7 @@ class Model_Electric extends \orm\Model {
                     //デマンド
                     if($demandArray[$index][2] < intVal($tmpData['demand_kw'])){
                         $demandArray[$index][2] = intVal($tmpData['demand_kw']);
+                        $demandTriggerArray[$index][2] = $tmpData['electric_at'];
                     }
                     if($demandMax2 < $demandArray[$index][2]){
                         $demandMax2 = $demandArray[$index][2];
@@ -834,10 +1015,10 @@ class Model_Electric extends \orm\Model {
             }
         }
 
-
         return array(
             'result' => $dateArray,
             'result_demand' => $demandArray,
+        	'result_demand_at' => $demandTriggerArray,
             'total_one_year' => $totalOneYear,
             'total_two_year' => $totalTwoYear,
             'max_demand_one_year' => $demandMax1,
@@ -872,7 +1053,7 @@ class Model_Electric extends \orm\Model {
             ),
             array(
                 'start_time' => "04:00:00",
-                'end_time' => "05:59:59",
+                'end_time' => "04:59:59",
                 'index' => 5,
             ),
             array(
@@ -977,7 +1158,6 @@ class Model_Electric extends \orm\Model {
     /* 週間ページのグラフ表示用配列の初期化 */
     private static function initResultArrayForWeek($date1Array){
         $firstindex = array();
-        $result = array();
         foreach($date1Array as $date){
             array_push($firstindex,$date[0]);
         }
@@ -1007,129 +1187,6 @@ class Model_Electric extends \orm\Model {
             array("21h",0,0,0,0,0,0,0),
             array("22h",0,0,0,0,0,0,0),
             array("23h",0,0,0,0,0,0,0),
-        );
-    }
-
-
-
-    /*
-     * １日分のデータ取得(使用しない)
-     */
-    public static function onedaydata_old() {
-        $secondGraphFlg = Input::post('second_graph_flag');
-        $onedaydate = date('Y-m-d');
-        $twodaydate = '';
-        if (Input::method() == 'POST') {
-            $onedaydate = Input::post('onedaydate');
-            if($onedaydate == ""){
-                $onedaydate = date('Y-m-d');
-            }
-            if($secondGraphFlg){
-                $twodaydate = Input::post('twodaydate');
-                if($twodaydate == ""){
-                    $twodaydate = date('Y-m-d', strtotime('-1 days'));
-                }
-            }
-            $oneday_st = date('Y/m/d 00:00:00', strtotime($onedaydate));
-            $oneday_end = date('Y/m/d 23:59:59', strtotime($onedaydate));
-            $yesterday_st = date('Y/m/d 00:00:00', strtotime($twodaydate));
-            $yesterday_end = date('Y/m/d 23:59:59', strtotime($twodaydate));
-        } else {
-            $oneday_st = date("Y/m/d 00:00:00");
-            $oneday_end = date("Y/m/d 23:59:59");
-            $yesterday_st = date('Y/m/d 00:00:00', strtotime('-1 days'));
-            $yesterday_end = date('Y/m/d 23:59:59', strtotime('-1 days'));
-        }
-        //Authのインスタンス化
-        $auth = Auth::instance();
-        $str_id = $auth->get_str_id();
-        //１日分のデータの取得
-        $oneday = Model_Electric::DbData($str_id, $oneday_st, $oneday_end);
-        $onedayData = Model_Electric::onedaygraphdata($oneday);
-        $resultOneday = $onedayData['result'];
-
-        //昨日のデータ取得
-        if(!is_null($secondGraphFlg)){
-            $yesterday = Model_Electric::DbData($str_id, $yesterday_st, $yesterday_end);
-            $yesterdayData = Model_Electric::onedaygraphdata($yesterday);
-            $resultYesterday = $yesterdayData['result'];
-            $checkedFlg = 1;
-            $totalYesterDay = $yesterdayData['total'];
-        }else{
-            $totalYesterDay = 0;
-            $resultYesterday = array();
-            $checkedFlg = 0;
-        }
-
-
-
-        //店舗データ取得
-        $strDataArray = Model_BasicInfo::getStrDataByStrId($str_id);
-
-        //一日分のデータを整理
-        $resultsArray = array(
-            'str_id' => $str_id,
-            'str_data_array' => $strDataArray,
-            'target_date_1' => $onedaydate,
-            'target_date_2' => $twodaydate,
-            'checked_flg' => $checkedFlg,
-            'oneday' => $resultOneday,
-            'yesterday' => $resultYesterday,
-            'total_set_1' => $onedayData['total'],
-            'total_set_2' => $totalYesterDay,
-        );
-        return $resultsArray;
-    }
-
-    /**
-     * １日分のデータをグラフを表示させれるように整理する
-     */
-    private static function onedaygraphdata($result) {
-        $row = 0;
-        $data = array();
-        $count = array();
-        $total = 0;
-        for ($i = 0; $i < 24; $i++) {
-            $data [$i] = 0;
-            $count[$i] = 0;
-        }
-        //時間でのデータ整理
-        while ($row < count($result)) {
-            $date = new Datetime($result[$row]['electric_at']);
-            $hour = $date->format('G');
-            $kw = $result[$row]['electric_kw'];
-            //時間毎にデータを格納
-            ++$count[$hour];
-            $data[$hour] = $data[$hour] + $kw;
-            ++$row;
-        }
-        //平均値を取得
-        $i = 0;
-        while ($i < count($count)) {
-            if (!$count[$i] == 0) {
-                $data[$i] = (int)($data[$i] / $count[$i]);
-            }
-            ++$i;
-        }
-        $i1 = 0;
-        while ($i1 < count($data)) {
-            $resultoneday[$i1 + 1] = $data[$i1];
-            ++$i1;
-        }
-
-        for ($i = 0; $i <= 24; ++$i) {
-            if ($i == 0) {
-                $onedaydata[] = array('', '電力量');
-            } else {
-                $stringtime = $i - 1 . "h";
-                $onedaydata[] = array($stringtime, $resultoneday[$i]);
-                $total += (int)$resultoneday[$i];
-            }
-        }
-
-        return array(
-            'result' => $onedaydata,
-            'total' => $total
         );
     }
 }

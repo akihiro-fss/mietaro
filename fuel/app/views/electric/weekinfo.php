@@ -30,7 +30,7 @@
     <table id="electric-data-table-1" class="table table-bordered">
         <tr>
             <th style="text-align:center;" colspan="6">
-                メイン詳細</br>
+                メイン詳細<br/>
                 <input type="date" name="param_date_1" value="param_date_1" id="form_param_date_1" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
             </th>
@@ -44,11 +44,11 @@
             <th>湿度(%)</th>
         </tr>
     </table>
-    </br></br>
+    <br/><br/>
     <table id="electric-data-table-2" class="table table-bordered">
         <tr>
             <th style="text-align:center;" colspan="6">
-                比較対象詳細</br>
+                比較対象詳細<br/>
                 <input type="date" name="param_date_2" value="param_date_2" id="form_param_date_2" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
             </th>
@@ -77,11 +77,11 @@
     var twoweekTotal = electricData.twoweek_total;
 
     $.each(oneweekData, function (key, value) {
-        $('#electric-data-table-1').append('<tr><td style="width:50px;">' + key + '</td><td>' + value + '</td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
+        $('#electric-data-table-1').append('<tr><td style="width:50px;">' + key + '</td><td>' + value['total'] + '</td><td>' + value['demand_kw'] + '</td><td>' + value['electric_at'] + '</td><td> - </td><td> - </td></tr>');
     });
 
     $.each(twoweekData, function (key, value) {
-        $('#electric-data-table-2').append('<tr><td style="width:50px;">' + key + '</td><td>' + value + '</td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
+        $('#electric-data-table-2').append('<tr><td style="width:50px;">' + key + '</td><td>' + value['total'] + '</td><td>' + value['demand_kw'] + '</td><td>' + value['electric_at'] + '</td><td> - </td><td> - </td></tr>');
     });
 
     $('#electric-data-table-1').append('<tr><td style="width:90px;">  合計  </td><td>' + oneweekTotal + '</td><<td> - </td><td> - </td><td> - </td><td> - </td></tr>');

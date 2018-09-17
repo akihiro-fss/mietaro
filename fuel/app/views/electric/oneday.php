@@ -25,7 +25,7 @@
 
 <?php echo Form::open(array('name' => 'search', 'method' => 'post', 'class' => 'form-horizontal')); ?>
 <table>
-    <tr><th align="left">表示したい日付を指定してください</th><th></tr></tr>
+    <tr><th align="left">表示したい日付を指定してください</th></tr>
 <tr>
     <th valign="top">
         <?php echo Form::input('onedaydate', 'onedaydate', array('type' => 'date')); ?>
@@ -35,8 +35,8 @@
         <ul style="list-style:none;">
             <li><b>使用電力量</b>　　　<span id="total_set_1"></span>kwh </li>
             <li><b>最大デマンド値</b> 　<span id="max_demand_1"></span>kW </li>
-            <li><b>CO2排出量</b>　　　-kg-CO2 </li>
-            <li><b>電力量料金</b>　　　-円 </li>
+            <li><b>CO2排出量</b>　　　<span id="total_emission_1"></span>kg-CO2 </li>
+            <li><b>電力量料金</b>　　　<span id="total_price_1"></span>円 </li>
         </ul>
     </td>
 </tr>
@@ -54,8 +54,8 @@
         <ul style="list-style:none;">
             <li><b>使用電力量</b>　　　<span id="total_set_2"></span>kwh </li>
             <li><b>最大デマンド値</b> 　<span id="max_demand_2"></span>kW </li>
-            <li><b>CO2排出量</b>　　　-kg-CO2 </li>
-            <li><b>電力量料金</b>　　　-円 </li>
+            <li><b>CO2排出量</b>　　　<span id="total_emission_2"></span>kg-CO2 </li>
+            <li><b>電力量料金</b>　　　<span id="total_price_2"></span>円 </li>
         </ul>
     </td>
 </tr>
@@ -81,14 +81,14 @@
     <tr id="weather_time"><th>時間</th></tr>
     <tr id="weather_info"><th>天気</th></tr>
     <tr id="weather_temp"><th>気温（℃）</th></tr>
-    <tr id="weather_rain"><th>降水量</br>(mm/h)</th></tr>
+    <tr id="weather_rain"><th>降水量<br/>(mm/h)</th></tr>
 </table>
 
 <div class="form-group">
     <label for="comment">Comment:</label>
     <?php echo '<div id="alert_error" class="alert-error">' . Session::get_flash('error') . '</div>' ?>
     <?php echo '<div id="alert_success" class="alert-success">' . Session::get_flash('success') . '</div>' ?>
-    <textarea id="comment" class="form-control" rows="5" style="width:800px;"></textarea></br>
+    <textarea id="comment" class="form-control" rows="5" style="width:800px;"></textarea><br/>
     <input id="comment_button" class="btn btn-primary" type="submit" value="記録">
 </div>
 
@@ -102,6 +102,10 @@
     var total2 = onedayData['total_set_2'];
     var max1 = onedayData['max_demand_1'];
     var max2 = onedayData['max_demand_2'];
+    var emission1 = onedayData['total_emission_1'];
+    var emission2 = onedayData['total_emission_2'];
+    var price1 = onedayData['total_price_1'];
+    var price2 = onedayData['total_price_2'];
     var checked_flg = onedayData['checked_flg'];
     var targetDate1 = onedayData['target_date_1'];
     var targetDate2 = onedayData['target_date_2'];
@@ -114,6 +118,12 @@
     //デマンド最大値セット
     $('#max_demand_1').append(max1);
     $('#max_demand_2').append(max2);
+    //CO2排出量セット
+    $('#total_emission_1').append(emission1);
+    $('#total_emission_2').append(emission2);
+    //電力量料金セット
+    $('#total_price_1').append(price1);
+    $('#total_price_2').append(price2);
 
     $('#form_onedaydate').val(targetDate1);
     $('#form_twodaydate').val(targetDate2);

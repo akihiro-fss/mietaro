@@ -30,12 +30,12 @@
         <tr>
             <th></th>
             <th style="text-align:center;" colspan="5">
-                メイン詳細</br>
+                メイン詳細<br/>
                 <input type="date" name="param_date_1" value="param_date_1" id="form_param_date_1" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
             </th>
             <th style="text-align:center;" colspan="5">
-                比較対象詳細</br>
+                比較対象詳細<br/>
                 <input type="date" name="param_date_2" value="param_date_2" id="form_param_date_2" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
             </th>
@@ -75,24 +75,20 @@
     var diffTotal = 0;
 
     $.each(onedayData, function (key, value) {
-        var diff = (value - twodayData[key]);
+        var diff = parseInt(twodayData[key][0])-parseInt(value[0]);
         diffTotal += diff;
         var diffStr = '';
         if (diff > 0) {
-            diffStr = '<td> -' + diff + '</td>';
-        } else if (diff < 0) {
-            diffStr = '<td> ' + diff + '</td>';
+            diffStr = '<td> +' + diff + '</td>';
         } else {
             diffStr = '<td>' + diff + '</td>';
         }
 
-        $('#electric-data-table').append('<tr><td style="width:50px;">' + key + '</td><td>' + value + '</td><td> - </td><td> - </td><td> - </td><td> - </td><td>' + twodayData[key] + '</td><td> - </td><td> - </td><td> - </td><td> - </td>' + diffStr + '<td> - </td><td> - </td></tr>');
+        $('#electric-data-table').append('<tr><td style="width:50px;">' + key + '</td><td>' + value[0] + '</td><td> - </td><td>' + value[1] + '</td><td> - </td><td> - </td><td>' + twodayData[key][0] + '</td><td> - </td><td>' + twodayData[key][1] + '</td><td> - </td><td> - </td>' + diffStr + '<td> - </td><td> - </td></tr>');
     });
     var diffTotalStr = '';
-    if (diffTotalStr > 0) {
-        diffTotalStr = '<td> -' + diffTotal + '</td>';
-    } else if (diffTotalStr < 0) {
-        diffTotalStr = '<td> ' + diffTotal + '</td>';
+    if (diffTotal > 0) {
+        diffTotalStr = '<td> +' + diffTotal + '</td>';
     } else {
         diffTotalStr = '<td>' + diffTotal + '</td>';
     }

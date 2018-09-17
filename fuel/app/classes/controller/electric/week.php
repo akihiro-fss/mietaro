@@ -26,7 +26,7 @@ class Controller_Electric_week extends Controller {
 
     public function action_index() {
         //一週間分のデータを取得
-        $week = Model_Electric::weekdaydata();
+        $weekData = Model_Electric::weekdaydata();
         //テーマのインスタンス化
         $theme = \Theme::forge();
         //テーマにテンプレートのセット
@@ -34,7 +34,8 @@ class Controller_Electric_week extends Controller {
         //テーマのテンプレートにタイトルをセット
         $theme->get_template()->set('title', 'MIETARO');
         //テーマのテンプレートにビューとページデータをセット
-        $theme->get_template()->set('content', $theme->view('electric/week', $week));
+//        $theme->get_template()->set('content', $theme->view('electric/week', $week));
+        $theme->get_template()->set('content', $theme->view('electric/week', $weekData)->set('weekData',$weekData));
         //テーマのテンプレートにビューとページデータをセット
         $theme->get_template()->set('sidebar', $theme->view('sidebar'));
         return $theme;

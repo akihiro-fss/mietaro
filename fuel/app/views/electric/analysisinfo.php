@@ -102,6 +102,14 @@
             <?php echo floor($total_electric * $emission_factor); ?>(kg-CO2)
         </td>
     </tr>
+    <tr>
+        <th>
+            原油換算
+        </th>
+        <td>
+            <?php echo floor($total_electric * $conversion_factor); ?>(l)
+        </td>
+    </tr>
 </table>
 
 

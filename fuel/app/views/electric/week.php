@@ -30,7 +30,7 @@
 
 <?php echo Form::open(array('name' => 'login', 'method' => 'post', 'class' => 'form-horizontal')); ?>
 <table>
-<tr><th align="left">指定した日付から<br/>過去１週間の使用電力用が表示されます</th><th></tr>
+<tr><th align="left">指定した日付から<br/>過去１週間の使用電力用が表示されます</th></tr>
 <tr>
     <th valign="top">
         <?php echo Form::input('oneweekdate', 'oneweekdate', array('type' => 'date')); ?>

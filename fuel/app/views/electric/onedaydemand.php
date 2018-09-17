@@ -24,7 +24,7 @@
 
 <?php echo Form::open(array('name' => 'search', 'method' => 'post', 'class' => 'form-horizontal')); ?>
 <table>
-    <tr><th align="left">表示したい日付を指定してください</th><th></tr>
+    <tr><th align="left">表示したい日付を指定してください</th></tr>
 <tr>
     <th valign="top">
         <?php echo Form::input('onedaydate', 'onedaydate', array('type' => 'date')); ?>

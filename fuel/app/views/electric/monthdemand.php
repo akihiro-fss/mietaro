@@ -30,7 +30,7 @@
 
 <?php echo Form::open(array('name' => 'search', 'method' => 'post', 'class' => 'form-horizontal')); ?>
 <table>
-<tr><th align="left">指定した日付の月の<br/>使用電力情報が表示されます</th><th></tr>
+<tr><th align="left">指定した日付の月の<br/>使用電力情報が表示されます</th></tr>
 <tr>
     <th valign="top">
         <?php echo Form::input('onemonthdate', 'onemonthdate', array('type' => 'date')); ?>

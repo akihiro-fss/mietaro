@@ -29,12 +29,12 @@
     <table id="electric-data-table" class="table table-bordered">
         <tr>
             <th style="text-align:center;" colspan="6">
-                メイン詳細</br>
+                メイン詳細<br/>
                 <input type="date" name="param_date_1" value="param_date_1" id="form_param_date_1" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
             </th>
             <th style="text-align:center;" colspan="5">
-                比較対象詳細</br>
+                比較対象詳細<br/>
                 <input type="date" name="param_date_2" value="param_date_2" id="form_param_date_2" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
             </th>
@@ -66,31 +66,27 @@
     $('#form_param_date_2').val(electricData.param_date_2);
 
 //電力量テーブル作成
-    var oneyearData = electricData.oneyear_date;
-    var twoyearData = electricData.twoyear_date;
+    var oneyearElectric = electricData.oneyear_electric;
+    var twoyearElectric = electricData.twoyear_electric;
     var oneyearTotal = electricData.oneyear_total;
     var twoyearTotal = electricData.twoyear_total;
     var diffTotal = 0;
 
-    $.each(oneyearData, function (key, value) {
-        var diff = (value - twoyearData[key]);
+    $.each(oneyearElectric, function (key, value) {
+        var diff = parseInt(twoyearElectric[key][0]) - parseInt(value[0]);
         diffTotal += diff;
         var diffStr = '';
         if (diff > 0) {
-            diffStr = '<td> -' + diff + '</td>';
-        } else if (diff < 0) {
-            diffStr = '<td> ' + diff + '</td>';
-        } else {
-            diffStr = '<td>' + diff + '</td>';
+            diffStr = '<td> +' + diff + '</td>';
+        }else{
+        	diffStr = '<td>' + diff + '</td>';
         }
 
-        $('#electric-data-table').append('<tr><td style="width:50px;">' + key + '</td><td>' + value + '</td><td> - </td><td> - </td><td> - </td><td> - </td><td>' + twoyearData[key] + '</td><td> - </td><td> - </td><td> - </td><td> - </td>' + diffStr + '<td> - </td></tr>');
+        $('#electric-data-table').append('<tr><td style="width:50px;">' + key + '</td><td>' + value[0] + '</td><td>' + value[1] + '</td><td>' + value[2] + '</td><td> - </td><td> - </td><td>' + twoyearElectric[key][0] + '</td><td>' + twoyearElectric[key][1] + '</td><td>' + twoyearElectric[key][1] + '</td><td> - </td><td> - </td>' + diffStr + '<td> - </td></tr>');
     });
     var diffTotalStr = '';
-    if (diffTotalStr > 0) {
-        diffTotalStr = '<td> -' + diffTotal + '</td>';
-    } else if (diffTotalStr < 0) {
-        diffTotalStr = '<td> ' + diffTotal + '</td>';
+    if (diffTotal > 0) {
+        diffTotalStr = '<td> +' + diffTotal + '</td>';
     } else {
         diffTotalStr = '<td>' + diffTotal + '</td>';
     }

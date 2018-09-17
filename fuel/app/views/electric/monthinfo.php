@@ -29,7 +29,7 @@
     <table id="electric-data-table" class="table table-bordered">
         <tr>
             <th style="text-align:center;" colspan="6">
-                メイン詳細</br>
+                メイン詳細<br/>
                 <input type="date" name="param_date_1" value="param_date_1" id="form_param_date_1" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
             </th>
@@ -55,7 +55,7 @@
     var onemonthTotal = electricData.onemonth_total;
 
     $.each(onemonthData, function (key, value) {
-        $('#electric-data-table').append('<tr><td style="width:50px;">' + key + '</td><td>' + value + '</td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
+        $('#electric-data-table').append('<tr><td style="width:50px;">' + key + '</td><td>' + value[0] + '</td><td>' + value[1] + '</td><td>' + value[2] + '</td><td> - </td><td> - </td></tr>');
     });
 
     $('#electric-data-table').append('<tr><td style="width:90px;">  合計  </td><td>' + onemonthTotal + '</td><<td> - </td><td> - </td><td> - </td><td> - </td></tr>');

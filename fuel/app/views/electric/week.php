@@ -15,16 +15,6 @@
  * @extends Views
  */
 ?>
-<?php
-$dataArray = Model_Electric::weekdaydata();
-$checkedFlg = json_encode($dataArray['checked_flg']);
-$targetDate1 = json_encode($dataArray['target_date_1']);
-$targetDate2 = json_encode($dataArray['target_date_2']);
-$oneWeek = json_encode($dataArray['one_week']);
-$twoWeek = json_encode($dataArray['two_week']);
-$totalSet1 = json_encode($dataArray['total_set_1']);
-$totalSet2 = json_encode($dataArray['total_set_2']);
-?>
 
 <h3><?php echo Session::get_flash('success', 'ようこそ' . Auth::get_screen_name() . 'さん'); ?></h3>
 <ul class="nav nav-tabs">
@@ -40,7 +30,7 @@ $totalSet2 = json_encode($dataArray['total_set_2']);
 
 <?php echo Form::open(array('name' => 'login', 'method' => 'post', 'class' => 'form-horizontal')); ?>
 <table>
-<tr><th align="left">指定した日付から</br>過去１週間の使用電力用が表示されます</th><th></tr></tr>
+<tr><th align="left">指定した日付から<br/>過去１週間の使用電力用が表示されます</th><th></tr>
 <tr>
     <th valign="top">
         <?php echo Form::input('oneweekdate', 'oneweekdate', array('type' => 'date')); ?>
@@ -48,10 +38,10 @@ $totalSet2 = json_encode($dataArray['total_set_2']);
     </th>
     <td>
         <ul style="list-style:none;">
-            <li><b>使用電力量</b>　　　<?php echo $totalSet1; ?>kwh </li>
-            <li><b>最大デマンド値</b>　-kW </li>
-            <li><b>CO2排出量</b>　　　-kg-CO2 </li>
-            <li><b>電力量料金</b>　　　-円 </li>
+            <li><b>使用電力量</b>　　　<span id="total_set_1"></span>kwh </li>
+            <li><b>最大デマンド値</b> 　<span id="max_demand_1"></span>kW </li>
+            <li><b>CO2排出量</b>　　　<span id="total_emission_1"></span>kg-CO2 </li>
+            <li><b>電力量料金</b>　　　<span id="total_price_1"></span>円 </li>
         </ul>
     </td>
 </tr>
@@ -67,10 +57,10 @@ $totalSet2 = json_encode($dataArray['total_set_2']);
     </th>
     <td>
         <ul style="list-style:none;">
-            <li><b>使用電力量</b>　　　<?php echo $totalSet2; ?>kwh </li>
-            <li><b>最大デマンド値</b>　-kW </li>
-            <li><b>CO2排出量</b>　　　-kg-CO2 </li>
-            <li><b>電力量料金</b>　　　-円 </li>
+            <li><b>使用電力量</b>　　　<span id="total_set_2"></span>kwh </li>
+            <li><b>最大デマンド値</b> 　<span id="max_demand_2"></span>kW </li>
+            <li><b>CO2排出量</b>　　　<span id="total_emission_2"></span>kg-CO2 </li>
+            <li><b>電力量料金</b>　　　<span id="total_price_2"></span>円 </li>
         </ul>
     </td>
 </tr>
@@ -91,15 +81,37 @@ $totalSet2 = json_encode($dataArray['total_set_2']);
 </form>
 
 <script>
-    var targetDate1 = <?php echo $targetDate1; ?>;
-    var targetDate2 = <?php echo $targetDate2; ?>;
+    var weekData = <?php echo json_encode($weekData); ?>;
+    var targetDate1 = weekData['target_date_1'];
+    var targetDate2 = weekData['target_date_2'];
+    var checked_flg = weekData['checked_flg'];
+    var one_week = weekData['one_week'];
+    var two_week = weekData['two_week'];
+    var total1 = weekData['total_set_1'];
+    var total2 = weekData['total_set_2'];
+    var max1 = weekData['max_demand_1'];
+    var max2 = weekData['max_demand_2'];
+    var emission1 = weekData['total_emission_1'];
+    var emission2 = weekData['total_emission_2'];
+    var price1 = weekData['total_price_1'];
+    var price2 = weekData['total_price_2'];
+
+  //電力量合計値セット
+    $('#total_set_1').append(total1);
+    $('#total_set_2').append(total2);
+    //デマンド最大値セット
+    $('#max_demand_1').append(max1);
+    $('#max_demand_2').append(max2);
+    //CO2排出量セット
+    $('#total_emission_1').append(emission1);
+    $('#total_emission_2').append(emission2);
+    //電力量料金セット
+    $('#total_price_1').append(price1);
+    $('#total_price_2').append(price2);
+
     $('#form_oneweekdate').val(targetDate1);
     $('#form_twoweekdate').val(targetDate2);
-    var one_week = <?php echo $oneWeek; ?>;
-    var two_week = <?php echo $twoWeek; ?>;
 
-    /* チェックボックス */
-    var checked_flg = <?php echo $checkedFlg; ?>;
 
     $('#weekinfo').click(function(){
         $('#param_date_1').val($('#form_oneweekdate').val());

@@ -101,7 +101,7 @@
         <td>
             <?php echo floor($total_electric * $emission_factor); ?>(kg-CO2)
         </td>
-    <t/r>
+    </tr>
 </table>
 
 

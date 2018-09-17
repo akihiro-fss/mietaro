@@ -35,6 +35,7 @@ class Controller_Electric_analysisinfo extends Controller
             $today = $tday_format->format('Y-m-d H:i:s');
             $endtime = Input::post('endtime');
         }
+        
         // 日付が送られて来なかった場合
         if (empty($starttime)) {
             $today = date('Y-m-d H:00:00');
@@ -85,8 +86,12 @@ class Controller_Electric_analysisinfo extends Controller
         $total_electric = Model_analysis::getTotalElectric($strId, $starttime, $endtime);
 
         // CO2排出係数の取得
-        $efcotor = Model_basicinfo::getEfactor();
-        $emission_factor = $efcotor['emission_factor'];
+        $efactor = Model_basicinfo::getEfactor();
+        $emission_factor = $efactor['emission_factor'];
+
+        // 原油換算係数の取得
+        $cfactor = Model_basicinfo::getCfactor();
+        $conversion_factor = $cfactor['conversion_factor'];
     
         // viewに送るデータを連想配列で作成
         $data = array();
@@ -98,6 +103,7 @@ class Controller_Electric_analysisinfo extends Controller
         $data['date_array'] = $date_array;
         $data['total_electric'] = $total_electric;
         $data['emission_factor'] = $emission_factor;
+        $data['conversion_factor'] = $conversion_factor;
 
         // テーマのインスタンス化
         $theme = \Theme::forge();

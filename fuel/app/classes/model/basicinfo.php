@@ -17,8 +17,8 @@
  * @extends Model
  *
  */
-class Model_BasicInfo extends \orm\Model {
-
+class Model_BasicInfo extends \orm\Model
+{
     protected static $_table_name = 'BasicInfo';
     protected static $_primary_key = array('str_id');
     protected static $_properties = array(
@@ -68,8 +68,8 @@ class Model_BasicInfo extends \orm\Model {
         )
     );
 
-    public static function createstore($data) {
-
+    public static function createstore($data)
+    {
         $query = Model_BasicInfo::forge()->set(array(
             'str_na' => $data['str_na'], //店舗名
             'ep_id' => $data['ep_id'], //企業ID
@@ -99,7 +99,8 @@ class Model_BasicInfo extends \orm\Model {
         return $result;
     }
 
-    public static function strdata() {
+    public static function strdata()
+    {
         $data = array();
         //Authのインスタンス化
         $auth = Auth::instance();
@@ -113,8 +114,8 @@ class Model_BasicInfo extends \orm\Model {
         return $data;
     }
 
-    public static function strupdate($str_id, $data) {
-
+    public static function strupdate($str_id, $data)
+    {
         $query = Model_BasicInfo::find($str_id);
         $query->str_na = $data->str_na;
         $query->pref_id = $data->pref_id;
@@ -140,7 +141,8 @@ class Model_BasicInfo extends \orm\Model {
         return $query;
     }
 
-    public static function strlist() {
+    public static function strlist()
+    {
         $data = array();
         $query = Model_BasicInfo::find('all');
         foreach ($query as $row):
@@ -149,13 +151,15 @@ class Model_BasicInfo extends \orm\Model {
         return $data;
     }
 
-    public static function getStoreNameByEpId($epId) {
+    public static function getStoreNameByEpId($epId)
+    {
         $query = "SELECT str_id,str_na FROM BasicInfo WHERE ep_id = $epId";
         $data = \DB::query($query)->execute()->as_array();
         return $data;
     }
 
-    public static function epstrlist() {
+    public static function epstrlist()
+    {
         //Authのインスタンス化
         $auth = Auth::instance();
         $ep_id = $auth->get_ep_id();
@@ -169,7 +173,8 @@ class Model_BasicInfo extends \orm\Model {
         return $data;
     }
 
-    public static function getStrDataByStrId($strId) {
+    public static function getStrDataByStrId($strId)
+    {
         $query = "SELECT * FROM BasicInfo WHERE str_id = $strId";
         $data = DB::query($query)->execute()->current();
         return $data;
@@ -179,7 +184,8 @@ class Model_BasicInfo extends \orm\Model {
      * サイドバーをデマンド値を表示
      * @return data
      */
-    public static function getDemandKey() {
+    public static function getDemandKey()
+    {
         $auth = Auth::instance();
         $str_id = $auth->get_str_id();
         $query = "SELECT demand_alarm FROM BasicInfo WHERE str_id = $str_id";
@@ -191,7 +197,8 @@ class Model_BasicInfo extends \orm\Model {
      * サイドバーを契約電力を表示
      * @return data
      */
-    public static function getContractDe() {
+    public static function getContractDe()
+    {
         $auth = Auth::instance();
         $str_id = $auth->get_str_id();
         $query = "SELECT contract_de FROM BasicInfo  WHERE str_id = $str_id";
@@ -203,7 +210,8 @@ class Model_BasicInfo extends \orm\Model {
      * CO2排出係数取得
      * @return data
      */
-    public static function getEfactor() {
+    public static function getEfactor()
+    {
         $auth = Auth::instance();
         $str_id = $auth->get_str_id();
         $query = "SELECT emission_factor FROM BasicInfo  WHERE str_id = $str_id";
@@ -211,4 +219,16 @@ class Model_BasicInfo extends \orm\Model {
         return $data;
     }
 
+    /**
+     * 原油換算係数取得
+     * @return data
+     */
+    public static function getCfactor()
+    {
+        $auth = Auth::instance();
+        $str_id = $auth->get_str_id();
+        $query = "SELECT conversion_factor FROM BasicInfo  WHERE str_id = $str_id";
+        $data = DB::query($query)->execute()->current();
+        return $data;
+    }
 }

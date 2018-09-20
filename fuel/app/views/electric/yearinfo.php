@@ -70,6 +70,10 @@
     var twoyearElectric = electricData.twoyear_electric;
     var oneyearTotal = electricData.oneyear_total;
     var twoyearTotal = electricData.twoyear_total;
+    var emission1 = electricData.total_emission_1;
+    var emission2 = electricData.total_emission_2;
+    var price1 = electricData.total_price_1;
+    var price2 = electricData.total_price_2;
     var diffTotal = 0;
 
     $.each(oneyearElectric, function (key, value) {
@@ -82,7 +86,7 @@
         	diffStr = '<td>' + diff + '</td>';
         }
 
-        $('#electric-data-table').append('<tr><td style="width:50px;">' + key + '</td><td>' + value[0] + '</td><td>' + value[1] + '</td><td>' + value[2] + '</td><td> - </td><td> - </td><td>' + twoyearElectric[key][0] + '</td><td>' + twoyearElectric[key][1] + '</td><td>' + twoyearElectric[key][1] + '</td><td> - </td><td> - </td>' + diffStr + '<td> - </td></tr>');
+        $('#electric-data-table').append('<tr><td style="width:50px;">' + key + '</td><td>' + value[0] + '</td><td>' + value[1] + '</td><td>' + value[2] + '</td><td> - </td><td> - </td><td>' + twoyearElectric[key][0] + '</td><td>' + twoyearElectric[key][1] + '</td><td>' + twoyearElectric[key][2] + '</td><td> - </td><td> - </td>' + diffStr + '<td> - </td></tr>');
     });
     var diffTotalStr = '';
     if (diffTotal > 0) {
@@ -91,7 +95,7 @@
         diffTotalStr = '<td>' + diffTotal + '</td>';
     }
     $('#electric-data-table').append('<tr><td style="width:50px;">  合計  </td><td>' + oneyearTotal + '</td><td> - </td><td>  </td><td> - </td><td> - </td><td>' + twoyearTotal + '</td><td> - </td><td>  </td><td> - </td><td> - </td>' + diffTotalStr + '<td> - </td></tr>');
-    $('#electric-data-table').append('<tr><td style="width:50px;"> CO2排出量 </td><td colspan="5"> - <td colspan="5"> - </td><td colspan="2">-</td></tr>');
-    $('#electric-data-table').append('<tr><td style="width:50px;"> 原油換算</td><td colspan="5"> - <td colspan="5"> - </td><td colspan="2">-</td></tr>');
+    $('#electric-data-table').append('<tr><td style="width:50px;"> CO2排出量 </td><td colspan="5">' + emission1 + '<td colspan="5">' + emission2 + '</td><td colspan="2">-</td></tr>');
+    $('#electric-data-table').append('<tr><td style="width:50px;"> 原油換算</td><td colspan="5">' + price1 + '<td colspan="5">' + price2 + '</td><td colspan="2">-</td></tr>');
 
 </script>

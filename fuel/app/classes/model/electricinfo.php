@@ -27,6 +27,14 @@ class Model_ElectricInfo extends \orm\Model {
         return \DB::query($sql)->execute()->as_array();
     }
 
+    /**
+     *  店舗の基本情報取得
+     */
+    private static function selectBasicInfoForStrId($str_id){
+    	$sql = "SELECT * FROM basicInfo WHERE str_id = $str_id";
+    	return \DB::query($sql)->execute()->current();
+    }
+
     //一日使用電力詳細表示用データ取得
     public static function getOnedayData($strId,$onedayDate = "",$twodayDate = ""){
 
@@ -38,7 +46,20 @@ class Model_ElectricInfo extends \orm\Model {
             'twoday_total' => 0,
             'param_date_1' => '',
             'param_date_2' => '',
+        	'total_emission_1' => 0,
+        	'total_emission_2' => 0,
+        	'total_price_1' => 0,
+        	'total_price_2' => 0,
         );
+
+        //　店舗情報取得
+        $strData = self::selectBasicInfoForStrId($strId);
+        //CO2排出係数
+        $emisionFactor = (float)$strData['emission_factor'];
+
+        //　原油換算係数
+        $conversionFactor = (float)$strData['conversion_factor'];
+
 
         //メイン
         if($onedayDate == ""){
@@ -144,6 +165,11 @@ class Model_ElectricInfo extends \orm\Model {
             $result['param_date_1'] = date('Y-m-d',strtotime($onedayStart));
             $result['param_date_2'] = date('Y-m-d',strtotime($twodayStart));
 
+            $result['total_emission_1'] = floor($result['oneday_total'] * $emisionFactor);
+            $result['total_emission_2'] = floor($result['twoday_total']  * $emisionFactor);
+            $result['total_price_1'] = floor($result['oneday_total'] * $conversionFactor);
+            $result['total_price_2'] = floor($result['twoday_total'] * $conversionFactor);
+
         return $result;
     }
 
@@ -159,11 +185,21 @@ class Model_ElectricInfo extends \orm\Model {
             'twoweek_total' => 0,
             'param_date_1' => '',
             'param_date_2' => '',
+        	'total_emission_1' => 0,
+        	'total_emission_2' => 0,
+        	'total_price_1' => 0,
+        	'total_price_2' => 0,
         );
+
+        //　店舗情報取得
+        $strData = self::selectBasicInfoForStrId($strId);
+        //CO2排出係数
+        $emisionFactor = (float)$strData['emission_factor'];
+        //　原油換算係数
+        $conversionFactor = (float)$strData['conversion_factor'];
 
         $result1 = array();
         $result2 = array();
-
         //メイン
         if($oneweekDate == ""){
             $oneweekDate = date('Y-m-d');
@@ -234,6 +270,11 @@ class Model_ElectricInfo extends \orm\Model {
         }
         $result['param_date_1'] = $oneweekDate;
         $result['param_date_2'] = $twoweekDate;
+        $result['total_emission_1'] = floor($result['oneweek_total'] * $emisionFactor);
+        $result['total_emission_2'] = floor($result['twoweek_total']  * $emisionFactor);
+        $result['total_price_1'] = floor($result['oneweek_total'] * $conversionFactor);
+        $result['total_price_2'] = floor($result['twoweek_total'] * $conversionFactor);
+
         return $result;
     }
 
@@ -245,7 +286,16 @@ class Model_ElectricInfo extends \orm\Model {
         $result = array(
             'onemonth_date' => array(),
             'onemonth_total' => 0,
+        	'total_emission' => 0,
+        	'total_price' => 0,
         );
+
+        //　店舗情報取得
+        $strData = self::selectBasicInfoForStrId($strId);
+        //CO2排出係数
+        $emisionFactor = (float)$strData['emission_factor'];
+        //　原油換算係数
+        $conversionFactor = (float)$strData['conversion_factor'];
 
         $result1 = array();
 
@@ -287,6 +337,8 @@ class Model_ElectricInfo extends \orm\Model {
 
         $result['onemonth_total'] = $convertResult['total_one_month'];
         $result['param_date_1'] = $onemonthDate;
+        $result['total_emission'] = floor($result['onemonth_total'] * $emisionFactor);
+        $result['total_price'] = floor($result['onemonth_total'] * $conversionFactor);
 
         return $result;
     }
@@ -303,7 +355,18 @@ class Model_ElectricInfo extends \orm\Model {
         	'twoyear_demand' => array(),
         	'oneyear_total' => 0,
         	'twoyear_total' => 0,
+        	'total_emission_1' => 0,
+        	'total_emission_2' => 0,
+        	'total_price_1' => 0,
+        	'total_price_2' => 0,
         );
+
+        //　店舗情報取得
+        $strData = self::selectBasicInfoForStrId($strId);
+        //CO2排出係数
+        $emisionFactor = (float)$strData['emission_factor'];
+        //　原油換算係数
+        $conversionFactor = (float)$strData['conversion_factor'];
 
         //メイン
         if($oneyearDate == ""){
@@ -366,6 +429,10 @@ class Model_ElectricInfo extends \orm\Model {
 
         $result['param_date_1'] = $oneyearDate;
         $result['param_date_2'] = $twoyearDate;
+        $result['total_emission_1'] = floor($result['oneyear_total'] * $emisionFactor);
+        $result['total_emission_2'] = floor($result['twoyear_total']  * $emisionFactor);
+        $result['total_price_1'] = floor($result['oneyear_total'] * $conversionFactor);
+        $result['total_price_2'] = floor($result['twoyear_total'] * $conversionFactor);
 
         return $result;
     }

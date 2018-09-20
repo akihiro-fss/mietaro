@@ -71,7 +71,6 @@
 <input type="hidden" id="param_date_2" name="param_date_2" value="">
 
 <ul class="nav nav-tabs" style="border-bottom:none;">
-	<li class="nav-item"><a href="sample">気温グラフを表示</a></li>
 	<li class="nav-item"><a id="year">電力量グラフを表示</a></li>
 	<li class="nav-item"><a id="yearinfo">詳細表を表示</a></li>
 </ul>

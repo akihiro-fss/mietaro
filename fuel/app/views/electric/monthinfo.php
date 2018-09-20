@@ -53,13 +53,15 @@
 //電力量テーブル作成
     var onemonthData = electricData.onemonth_date;
     var onemonthTotal = electricData.onemonth_total;
+    var emission1 = electricData.total_emission;
+    var price1 = electricData.total_emission;
 
     $.each(onemonthData, function (key, value) {
         $('#electric-data-table').append('<tr><td style="width:50px;">' + key + '</td><td>' + value[0] + '</td><td>' + value[1] + '</td><td>' + value[2] + '</td><td> - </td><td> - </td></tr>');
     });
 
     $('#electric-data-table').append('<tr><td style="width:90px;">  合計  </td><td>' + onemonthTotal + '</td><<td> - </td><td> - </td><td> - </td><td> - </td></tr>');
-    $('#electric-data-table').append('<tr><td> CO2排出量 </td><<td> - </td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
-    $('#electric-data-table').append('<tr><td> 原油換算</td><td> - </td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
+    $('#electric-data-table').append('<tr><td> CO2排出量 </td><td>' + emission1 + '</td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
+    $('#electric-data-table').append('<tr><td> 原油換算</td><td>' + price1 + '</td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
 
 </script>

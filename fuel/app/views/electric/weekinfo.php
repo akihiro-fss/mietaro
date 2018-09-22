@@ -75,6 +75,10 @@
     var twoweekData = electricData.twoweek_date;
     var oneweekTotal = electricData.oneweek_total;
     var twoweekTotal = electricData.twoweek_total;
+    var emission1 = electricData.total_emission_1;
+    var emission2 = electricData.total_emission_2;
+    var price1 = electricData.total_price_1;
+    var price2 = electricData.total_price_2;
 
     $.each(oneweekData, function (key, value) {
         $('#electric-data-table-1').append('<tr><td style="width:50px;">' + key + '</td><td>' + value['total'] + '</td><td>' + value['demand_kw'] + '</td><td>' + value['electric_at'] + '</td><td> - </td><td> - </td></tr>');
@@ -85,10 +89,10 @@
     });
 
     $('#electric-data-table-1').append('<tr><td style="width:90px;">  合計  </td><td>' + oneweekTotal + '</td><<td> - </td><td> - </td><td> - </td><td> - </td></tr>');
-    $('#electric-data-table-1').append('<tr><td> CO2排出量 </td><<td> - </td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
-    $('#electric-data-table-1').append('<tr><td> 原油換算</td><td> - </td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
+    $('#electric-data-table-1').append('<tr><td> CO2排出量 </td><<td>' + emission1 + '</td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
+    $('#electric-data-table-1').append('<tr><td> 原油換算</td><td>' + price1 + '</td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
     $('#electric-data-table-2').append('<tr><td style="width:90px;">  合計  </td><td>' + twoweekTotal + '</td><<td> - </td><td> - </td><td> - </td><td> - </td></tr>');
-    $('#electric-data-table-2').append('<tr><td> CO2排出量 </td><<td> - </td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
-    $('#electric-data-table-2').append('<tr><td> 原油換算</td><td> - </td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
+    $('#electric-data-table-2').append('<tr><td> CO2排出量 </td><<td>'+ emission2 +'</td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
+    $('#electric-data-table-2').append('<tr><td> 原油換算</td><td>' + price2 + '</td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
 
 </script>

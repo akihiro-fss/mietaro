@@ -67,12 +67,6 @@
 //電力量テーブル作成
     var oneyearElectric = yearcompaire.oneyear_electric;
     var twoyearElectric = yearcompaire.twoyear_electric;
-    var oneyearTotal = yearcompaire.oneyear_total;
-    var twoyearTotal = yearcompaire.twoyear_total;
-    var emission1 = yearcompaire.total_emission_1;
-    var emission2 = yearcompaire.total_emission_2;
-    var emission_factor = yearcompaire.emission_factor;
-    var conversion_factor = yearcompaire.conversion_factor;
     var oneyear_emission  = yearcompaire.oneyear_emission;
     var twoyear_emission  = yearcompaire.twoyear_emission;
     var electric_raito = yearcompaire.electric_raito;

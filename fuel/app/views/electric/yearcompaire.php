@@ -23,12 +23,12 @@
             検証月
         </th>
         <th style="text-align:center;" colspan="3">
-            基準年</br>
+            基準年<br/>
             <input type="date" name="param_date_1" value="param_date_1" id="form_param_date_1" style="width:150px; height:30px">
         </th>
         </th>
         <th style="text-align:center;" colspan="3">
-            比較年</br>
+            比較年<br/>
             <input type="date" name="param_date_2" value="param_date_2" id="form_param_date_2" style="width:150px; height:30px">
         </th>
         <th style="text-align:center;" rowspan="2">

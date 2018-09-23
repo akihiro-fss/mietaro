@@ -2,9 +2,9 @@
 /**
  *
  * 作成日：2018/8/19
- * 更新日：
+ * 更新日：2018/9/23
  * 作成者：戸田滉洋
- * 更新者：
+ * 更新者：戸田滉洋
  *
  */
 /**
@@ -100,7 +100,7 @@
                                         + twoyear_emission[key] + '</td><td>' + electric_R[key] + '</td><td>' + emission_R[key] + '</td><td>' 
                                         +  electric_raito[key] +'</td><td>' + demand_R[key] + '</td><td>' + demand_raito[key] + '</td></tr>');
     });
-    
+
     // 検証用の比較の合計表
     $('#electric-data-table').append('<tr><td style="width:50px;">  合計  </td><td>' + oneyear_electric_total + '</td><td>' + max_oneyear_demand[0] + '<br/>' 
                                     + max_oneyear_demand[1] + '</td><td>' + emission_oneyear_total + '</td><td>' + twoyear_electric_total + '</td><td>'

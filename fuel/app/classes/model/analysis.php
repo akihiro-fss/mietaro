@@ -164,4 +164,101 @@ class Model_analysis extends \orm\Model
         }
         return $totaldata;
     }
+
+    // 検証用で使用する月ごとのco2排出量を計算
+    public static function getYEfactor($year_electric, $emission_factor)
+    {
+        // $oneyear_electricのco2排出量を計測
+        foreach ($year_electric as $key => $val) {
+            $year_emission[$key] = floor($val[0] * $emission_factor);
+        }
+        return $year_emission;
+    }
+
+    // 使用電力量の比率を計算
+    public static function getERaito($oneyear_electric, $twoyear_electric)
+    {
+        foreach ($oneyear_electric as $key => $val) {
+            if ($val[0] == 0 || $twoyear_electric[$key][0] == 0) {
+                $electric_raito[$key] = 0;
+            } else {
+                $electric_raito[$key] = floor($val[0]/$twoyear_electric[$key][0]*100);
+            }
+        }
+        return $electric_raito;
+    }
+
+    // 最大デマンド値の比率を計算
+    public static function getDRaito($oneyear_electric, $twoyear_electric)
+    {
+        foreach ($oneyear_electric as $key => $val) {
+            if ($val[1] == 0 || $twoyear_electric[$key][1] == 0) {
+                $demand_raito[$key] = 0;
+            } else {
+                $demand_raito[$key] = floor($val[1]/$twoyear_electric[$key][1]*100);
+            }
+        }
+        return $demand_raito;
+    }
+
+    // 使用電力の削減量計算
+    public static function calcER($oneyear_electric, $twoyear_electric)
+    {
+        foreach ($oneyear_electric as $key => $val) {
+            $electric_R[$key] = $twoyear_electric[$key][0] - $val[0];
+        }
+        return $electric_R;
+    }
+
+    // デマンド値の削減量計算
+    public static function calcDR($oneyear_electric, $twoyear_electric)
+    {
+        foreach ($oneyear_electric as $key => $val) {
+            $demand_R[$key] = $twoyear_electric[$key][1] - $val[1];
+        }
+        return $demand_R;
+    }
+
+    // CO2の削減量計算
+    public static function calcCOR($oneyear_emission, $twoyear_emission)
+    {
+        foreach ($oneyear_emission as $key => $val) {
+            $emission_R[$key] = $twoyear_emission[$key] - $val;
+        }
+        return $emission_R;
+    }
+
+    // 使用電力量の合計を計算
+    public static function calcETotal($year_electric)
+    {
+        $year_ETotal = 0;
+        foreach ($year_electric as $key => $val) {
+            $year_ETotal = $year_ETotal + $val[0];
+        }
+        return $year_ETotal;
+    }
+
+    // 年間の最大デマンド値を計算
+    public static function maxYDemand($year_electric)
+    {
+        $year_MaxD[0] = 0;
+        $year_MaxD[1] = "";
+        foreach ($year_electric as $key => $val) {
+            if ($year_MaxD[0] <= $val[1]) {
+                $year_MaxD[0] = $val[1];
+                $year_MaxD[1] = $val[2];
+            }
+        }
+        return $year_MaxD;
+    }
+
+    // CO2排出量の合計を計算
+    public static function calcCTotal($year_emission)
+    {
+        $year_CTotal = 0;
+        foreach ($year_emission as $key => $val) {
+            $year_CTotal = $year_CTotal + $val;
+        }
+        return $year_CTotal;
+    }
 }

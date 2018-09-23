@@ -27,6 +27,8 @@ class Controller_Electric_oneDay extends Controller {
     public function action_index() {
         //一日分のデータを取得
         $oneday = Model_Electric::onedaydata();
+        //天気予報情報を取得
+        $oneday['weather_info'] = Model_Electric::getWeatherInfo();
         //テーマのインスタンス化
         $theme = \Theme::forge();
         //テーマにテンプレートのセット
@@ -58,5 +60,4 @@ class Controller_Electric_oneDay extends Controller {
 
         return $result;
     }
-
 }

@@ -633,7 +633,6 @@ class Model_Electric extends \orm\Model {
         $calcArray = self::getCalcArrayForWeekData();
 
         //平均値算出用の配列
-//        $countArray = $result1;
 
         //日毎の電力計算処理
         foreach($date1Array as $index=>$tmpArray){
@@ -674,19 +673,7 @@ class Model_Electric extends \orm\Model {
                 }
             }
         }
-        //平均値算出
-//         foreach($countArray as $index=>$arrayData){
-//             if($index == 0){continue;}
-//             foreach($arrayData as $key=>$data){
-//                 if($key == 0){continue;}
-//                 if($data == 0){continue;}
-// //                $result1[$index][$key] = (int)($result1[$index][$key] / $data);
-//                 $totalOneWeek += (int)$result1[$index][$key];
-//             }
-//         }
-
         //平均値算出用の配列
-//        $countArray = $result2;
         //日毎の電力計算処理
         foreach($date2Array as $index=>$tmpArray){
             if($index == 0){continue;}
@@ -726,18 +713,6 @@ class Model_Electric extends \orm\Model {
                 }
             }
         }
-
-//         foreach($countArray as $index=>$arrayData){
-//             if($index == 0){continue;}
-//             foreach($arrayData as $key=>$data){
-//                 if($key == 0){continue;}
-//                 if($data == 0){continue;}
-// //                $result2[$index][$key] = (int)($result2[$index][$key] / $data);
-//                 $totalTwoWeek += (int)$result1[$index][$key];
-//             }
-//         }
-
-
 
         return array(
             'one_week' => $result1,
@@ -1188,5 +1163,188 @@ class Model_Electric extends \orm\Model {
             array("22h",0,0,0,0,0,0,0),
             array("23h",0,0,0,0,0,0,0),
         );
+    }
+
+    /**
+     * 現在時間から未来11時間分の天気予報情報をwebAPIから取得しレスポンス用の配列を作成する
+     * @return ArrayObject
+     */
+    const ONE_HOUR = 3600;
+    public static function getWeatherInfo(){
+    	/* 計算に必要なパラメータを準備 */
+    	//Authのインスタンス化
+    	$auth = Auth::instance();
+    	$str_id = $auth->get_str_id();
+    	$strData = self::selectBasicInfoForStrId($str_id);
+    	//緯度経度取得
+    	$latitude = $strData['latitude'];
+    	$longitude = $strData['longitude'];
+    	//現在のタイムスタンプ
+    	$nowtimestamp = time();
+
+    	/*openweathermapで天気情報取得（基準となる配列）*/
+    	//曜日のプリセット
+    	$week_name = array("日", "月", "火", "水", "木", "金", "土");
+    	$weatherInfoTableData = array();
+    	$response = array();
+    	//api実行準備
+    	$appid ='1a91ac37fb0b64e5fbd1ad9ccc94b87b';
+    	$url = 'https://api.openweathermap.org/data/2.5/forecast?lat='.$latitude.'&lon='.$longitude.'&units=metric&appid='.$appid;
+    	//curlの処理を始める合図(openweathermap)
+    	$curl = curl_init($url);
+    	//リクエストのオプションをセットしていく
+    	curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET'); // メソッド指定
+    	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // 証明書の検証を行わない
+    	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true); // レスポンスを文字列で受け取る
+    	//レスポンスを変数に入れる
+    	$response = curl_exec($curl);
+    	//curlの処理を終了
+    	curl_close($curl);
+    	//表示に必要な要素だけ抽出（リスト先頭から4つ）
+    	$list =  json_decode($response)->list;
+    	$owinfotmp = array();
+    	$count = 0;
+    	foreach($list as $data ){
+    		$conarray = (array)$data;
+    		$timestamp = $conarray['dt'];
+    		$weathericon = $conarray['weather'][0]->icon;
+    		//一つ目の天気情報が現在時間から1時間以上開いている場合
+    		if($count == 0){
+    			if($timestamp - $nowtimestamp > self::ONE_HOUR){
+    				$tmpcalc = $timestamp - $nowtimestamp;
+    				$eCount = (int)($tmpcalc / self::ONE_HOUR);
+    				for($i=$eCount;$i>0;$i--){
+    					//必要情報のみ取得（時間と天気情報）
+    					$owinfotmp[] = array(
+    							'timestamp' =>$timestamp-(self::ONE_HOUR*$i),
+    							'date' => date('m/d',$timestamp-(self::ONE_HOUR*$i)),
+    							'week' => $week_name[date('w',$timestamp-(self::ONE_HOUR*$i))],
+    							'hour' => date('H時',$timestamp-(self::ONE_HOUR*$i)),
+    							'icon_info' =>'http://openweathermap.org/img/w/'.$weathericon.'.png',
+    					);
+    				}
+    			}
+    			$owinfotmp[] = array(
+    					'timestamp' =>$timestamp,
+    					'date' => date('m/d',$timestamp),
+    					'week' => $week_name[date('w',$timestamp)],
+    					'hour' => date('H時',$timestamp),
+    					'icon_info' =>'http://openweathermap.org/img/w/'.$weathericon.'.png',
+    			);
+    			$owinfotmp[] = array(
+    					'timestamp' =>$timestamp+self::ONE_HOUR,
+    					'date' => date('m/d',$timestamp+self::ONE_HOUR),
+    					'week' => $week_name[date('w',$timestamp+self::ONE_HOUR)],
+    					'hour' => date('H時',$timestamp+self::ONE_HOUR),
+    					'icon_info' =>'http://openweathermap.org/img/w/'.$weathericon.'.png',
+    			);
+    		}else{
+    			//必要情報のみ取得（時間と天気情報）
+    			$owinfotmp[] = array(
+    					'timestamp' =>$timestamp-self::ONE_HOUR,
+    					'date' => date('m/d',$timestamp-self::ONE_HOUR),
+    					'week' => $week_name[date('w',$timestamp-self::ONE_HOUR)],
+    					'hour' => date('H時',$timestamp-self::ONE_HOUR),
+    					'icon_info' =>'http://openweathermap.org/img/w/'.$weathericon.'.png',
+    			);
+    			$owinfotmp[] = array(
+    					'timestamp' =>$timestamp,
+    					'date' => date('m/d',$timestamp),
+    					'week' => $week_name[date('w',$timestamp)],
+    					'hour' => date('H時',$timestamp),
+    					'icon_info' =>'http://openweathermap.org/img/w/'.$weathericon.'.png',
+    			);
+    			$owinfotmp[] = array(
+    					'timestamp' =>$timestamp+self::ONE_HOUR,
+    					'date' => date('m/d',$timestamp+self::ONE_HOUR),
+    					'week' => $week_name[date('w',$timestamp+self::ONE_HOUR)],
+    					'hour' => date('H時',$timestamp+self::ONE_HOUR),
+    					'icon_info' =>'http://openweathermap.org/img/w/'.$weathericon.'.png',
+    			);
+    		}
+    		//4回繰り返したら（11個の要素をが揃ったら）終了
+    		$count++;
+    		if($count >= 4 ){break;}
+    	}
+    	//全ての要素を8個になるまで縮める
+
+    	$owinfo = array();
+    	$tempkey = 0;
+    	while(count($owinfo) < 8){
+    		$owinfo[] = $owinfotmp[$tempkey];
+    		$tempkey++;
+    	}
+
+    	 //darkskyapiで天気情報取得（基準となる配列に気温と降水量を当てはめていく
+    	 $url = 'https://api.darksky.net/forecast/6a209d039050d0ab085064ab9018c09e/'.$latitude.','.$longitude.'?units=si';
+    	 // curlの処理を始める合図(openweathermap)
+    	 $curl = curl_init($url);
+    	 //リクエストのオプションをセットしていく
+    	 curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET'); // メソッド指定
+    	 curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // 証明書の検証を行わない
+    	 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true); // レスポンスを文字列で受け取る
+    	 //レスポンスを変数に入れる
+    	 $response = curl_exec($curl);
+    	 // curlの処理を終了
+    	 curl_close($curl);
+    	 //openwethermapで抽出した時間と同じ予報情報を取得し、気温と降水量をマージして天気予報テーブル用のレスポンスを完成させる
+    	 $list =  json_decode($response)->hourly->data;
+    	 foreach($owinfo as $tmpInfo){
+    	 	foreach($list as $data){
+    	 		//日時
+    	 		$timestamp = $data->time;
+    	 		//気温
+    	 		$temperature = $data->temperature;
+    	 		//降水量
+    	 		$rain = $data->precipIntensity;
+    	 		if($tmpInfo['timestamp'] == $timestamp){
+    	 			$weatherInfoTableData[] = array(
+    	 					'timestamp' => $tmpInfo['timestamp'],
+    	 					'date' => $tmpInfo['date'],
+    	 					'week' => $tmpInfo['week'],
+    	 					'hour' => $tmpInfo['hour'],
+    	 					'icon_info' => $tmpInfo['icon_info'],
+    	 					'temperture' => (int)$temperature,
+    	 					'rain' => (int)$rain
+    	 			);
+    	 			continue 2;
+    	 		}
+    	 	}
+    	 }
+
+    	 /*darkskyapiで当日の0～24時まで気温を取得(24時は23時の気温を引き継がせる)*/
+    	 $nowdate = date('Y-m-d\T00:00:00',$nowtimestamp);
+    	 $url = 'https://api.darksky.net/forecast/6a209d039050d0ab085064ab9018c09e/'.$latitude.','.$longitude.','.$nowdate.'?units=si';
+    	 // curlの処理を始める合図(openweathermap)
+    	 $curl = curl_init($url);
+    	 //　リクエストのオプションをセットしていく
+    	 curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET'); // メソッド指定
+    	 curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // 証明書の検証を行わない
+    	 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true); // レスポンスを文字列で受け取る
+    	 //レスポンスを変数に入れる
+    	 $response = curl_exec($curl);
+    	 // curlの処理を終了
+    	 curl_close($curl);
+    	 //darkskyapiで当日の0～24時までの気温を取得する
+    	 $list =  json_decode($response)->hourly->data;
+    	 $weatherInfoGraphData = array(array("",date('Y-m-d',$nowtimestamp)));
+    	 foreach($list as $data){
+    	 	//日時
+    	 	$timestamp = $data->time;
+    	 	//気温
+    	 	$temperature = $data->temperature;
+    	 	//グラフ用のデータ作成
+    	 	$hour = date('H',$timestamp);
+    	 	$weatherInfoGraphData[] = array($hour,(int)$temperature);
+    	 	//24時としてのデータを補填
+    	 	if($hour==23){
+    	 		$weatherInfoGraphData[] = array("24",(int)$temperature);
+    	 	}
+    	 }
+
+    	 return array(
+    	 		'weatherinfotabledata' => $weatherInfoTableData,
+    	 		'weatherinfographdata' => $weatherInfoGraphData,
+    	 );
     }
 }

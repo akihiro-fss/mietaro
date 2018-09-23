@@ -29,12 +29,12 @@
     <table id="electric-data-table" class="table table-bordered">
         <tr>
             <th></th>
-            <th style="text-align:center;" colspan="5">
+            <th style="text-align:center;" colspan="3">
                 メイン詳細<br/>
                 <input type="date" name="param_date_1" value="param_date_1" id="form_param_date_1" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
             </th>
-            <th style="text-align:center;" colspan="5">
+            <th style="text-align:center;" colspan="3">
                 比較対象詳細<br/>
                 <input type="date" name="param_date_2" value="param_date_2" id="form_param_date_2" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
@@ -46,18 +46,14 @@
             <th>使用電力量(kWh)</th>
             <th>電力量料金(円)</th>
             <th>デマンド(kW)</th>
-            <th>気温(℃)</th>
-            <th>湿度(%)</th>
             <th>使用電力量(kwh)</th>
             <th>電力量料金(円)</th>
             <th>デマンド(kwh)</th>
-            <th>気温(℃)</th>
-            <th>湿度(%)</th>
             <th>使用電力量(kwh)</th>
             <th>電力量料金(円)</th>
             <th>比率(％)</th>
         </tr>
-        <tr><td>0:00~</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>0:00~</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
     </table>
 <?php echo Form::close(); ?>
 
@@ -88,7 +84,7 @@
             diffStr = '<td>' + diff + '</td>';
         }
 
-        $('#electric-data-table').append('<tr><td style="width:50px;">' + key + '</td><td>' + value[0] + '</td><td> - </td><td>' + value[1] + '</td><td> - </td><td> - </td><td>' + twodayData[key][0] + '</td><td> - </td><td>' + twodayData[key][1] + '</td><td> - </td><td> - </td>' + diffStr + '<td> - </td><td> - </td></tr>');
+        $('#electric-data-table').append('<tr><td style="width:50px;">' + key + '</td><td>' + value[0] + '</td><td> - </td><td>' + value[1] + '</td><td>' + twodayData[key][0] + '</td><td> - </td><td>' + twodayData[key][1] + '</td>' + diffStr + '<td> - </td><td> - </td></tr>');
     });
     var diffTotalStr = '';
     if (diffTotal > 0) {
@@ -96,8 +92,8 @@
     } else {
         diffTotalStr = '<td>' + diffTotal + '</td>';
     }
-    $('#electric-data-table').append('<tr><td style="width:50px;">  合計  </td><td>' + onedayTotal + '</td><td> - </td><td>  </td><td> - </td><td> - </td><td>' + twodayTotal + '</td><td> - </td><td>  </td><td> - </td><td> - </td>' + diffTotalStr + '<td> - </td><td> - </td></tr>');
-    $('#electric-data-table').append('<tr><td style="width:50px;"> CO2排出量 </td><td colspan="5">' + emission1 + '<td colspan="5">' + emission2 + ' </td><td colspan="3"></td></tr>');
-    $('#electric-data-table').append('<tr><td style="width:50px;"> 原油換算</td><td colspan="5">' + price1 + '<td colspan="5">' + price2 + '</td><td colspan="3"></td></tr>');
+    $('#electric-data-table').append('<tr><td style="width:50px;">  合計  </td><td>' + onedayTotal + '</td><td> - </td><td>  </td><td> - </td><td> - </td><td>' + twodayTotal + '</td>' + diffTotalStr + '<td> - </td><td> - </td></tr>');
+    $('#electric-data-table').append('<tr><td style="width:50px;"> CO2排出量 </td><td colspan="3">' + emission1 + '<td colspan="3">' + emission2 + ' </td><td colspan="3"></td></tr>');
+    $('#electric-data-table').append('<tr><td style="width:50px;"> 原油換算</td><td colspan="3">' + price1 + '<td colspan="3">' + price2 + '</td><td colspan="3"></td></tr>');
 
 </script>

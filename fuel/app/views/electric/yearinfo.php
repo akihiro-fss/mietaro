@@ -28,12 +28,12 @@
 <?php echo Form::open(array('name' => 'yearinfo', 'method' => 'post', 'class' => 'form-horizontal')); ?>
     <table id="electric-data-table" class="table table-bordered">
         <tr>
-            <th style="text-align:center;" colspan="6">
+            <th style="text-align:center;" colspan="4">
                 メイン詳細<br/>
                 <input type="date" name="param_date_1" value="param_date_1" id="form_param_date_1" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
             </th>
-            <th style="text-align:center;" colspan="5">
+            <th style="text-align:center;" colspan="3">
                 比較対象詳細<br/>
                 <input type="date" name="param_date_2" value="param_date_2" id="form_param_date_2" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
@@ -45,13 +45,9 @@
             <th>小計(kWh)</th>
             <th>最大デマンド値(kW)</th>
             <th>発生時刻</th>
-            <th>気温(℃)</th>
-            <th>湿度(%)</th>
             <th>小計(kWh)</th>
             <th>最大デマンド値(kW)</th>
             <th>発生時刻</th>
-            <th>気温(℃)</th>
-            <th>湿度(%)</th>
             <th>使用電力量(kwh)</th>
             <th>比率(％)</th>
         </tr>
@@ -86,7 +82,7 @@
         	diffStr = '<td>' + diff + '</td>';
         }
 
-        $('#electric-data-table').append('<tr><td style="width:50px;">' + key + '</td><td>' + value[0] + '</td><td>' + value[1] + '</td><td>' + value[2] + '</td><td> - </td><td> - </td><td>' + twoyearElectric[key][0] + '</td><td>' + twoyearElectric[key][1] + '</td><td>' + twoyearElectric[key][2] + '</td><td> - </td><td> - </td>' + diffStr + '<td> - </td></tr>');
+        $('#electric-data-table').append('<tr><td style="width:50px;">' + key + '</td><td>' + value[0] + '</td><td>' + value[1] + '</td><td>' + value[2] + '</td><td>' + twoyearElectric[key][0] + '</td><td>' + twoyearElectric[key][1] + '</td><td>' + twoyearElectric[key][2] + '</td>' + diffStr + '<td> - </td></tr>');
     });
     var diffTotalStr = '';
     if (diffTotal > 0) {
@@ -94,8 +90,8 @@
     } else {
         diffTotalStr = '<td>' + diffTotal + '</td>';
     }
-    $('#electric-data-table').append('<tr><td style="width:50px;">  合計  </td><td>' + oneyearTotal + '</td><td> - </td><td>  </td><td> - </td><td> - </td><td>' + twoyearTotal + '</td><td> - </td><td>  </td><td> - </td><td> - </td>' + diffTotalStr + '<td> - </td></tr>');
-    $('#electric-data-table').append('<tr><td style="width:50px;"> CO2排出量 </td><td colspan="5">' + emission1 + '<td colspan="5">' + emission2 + '</td><td colspan="2">-</td></tr>');
-    $('#electric-data-table').append('<tr><td style="width:50px;"> 原油換算</td><td colspan="5">' + price1 + '<td colspan="5">' + price2 + '</td><td colspan="2">-</td></tr>');
+    $('#electric-data-table').append('<tr><td style="width:50px;">  合計  </td><td>' + oneyearTotal + '</td><td> - </td><td>  </td><td>' + twoyearTotal + '</td><td> - </td><td>  </td>' + diffTotalStr + '<td> - </td></tr>');
+    $('#electric-data-table').append('<tr><td style="width:50px;"> CO2排出量 </td><td colspan="3">' + emission1 + '<td colspan="3">' + emission2 + '</td><td colspan="2">-</td></tr>');
+    $('#electric-data-table').append('<tr><td style="width:50px;"> 原油換算</td><td colspan="3">' + price1 + '<td colspan="3">' + price2 + '</td><td colspan="2">-</td></tr>');
 
 </script>

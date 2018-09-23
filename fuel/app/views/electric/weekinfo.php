@@ -29,7 +29,7 @@
 <?php echo Form::open(array('name' => 'weekinfo', 'method' => 'post', 'class' => 'form-horizontal')); ?>
     <table id="electric-data-table-1" class="table table-bordered">
         <tr>
-            <th style="text-align:center;" colspan="6">
+            <th style="text-align:center;" colspan="4">
                 メイン詳細<br/>
                 <input type="date" name="param_date_1" value="param_date_1" id="form_param_date_1" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
@@ -40,14 +40,12 @@
             <th>小計(kWh)</th>
             <th>最大デマンド値(kw)</th>
             <th>発生時刻</th>
-            <th>気温(℃)</th>
-            <th>湿度(%)</th>
         </tr>
     </table>
     <br/><br/>
     <table id="electric-data-table-2" class="table table-bordered">
         <tr>
-            <th style="text-align:center;" colspan="6">
+            <th style="text-align:center;" colspan="4">
                 比較対象詳細<br/>
                 <input type="date" name="param_date_2" value="param_date_2" id="form_param_date_2" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
@@ -58,8 +56,6 @@
             <th>小計(kWh)</th>
             <th>最大デマンド値(kw)</th>
             <th>発生時刻</th>
-            <th>気温(℃)</th>
-            <th>湿度(%)</th>
         </tr>
     </table>
 <?php echo Form::close(); ?>
@@ -81,18 +77,18 @@
     var price2 = electricData.total_price_2;
 
     $.each(oneweekData, function (key, value) {
-        $('#electric-data-table-1').append('<tr><td style="width:50px;">' + key + '</td><td>' + value['total'] + '</td><td>' + value['demand_kw'] + '</td><td>' + value['electric_at'] + '</td><td> - </td><td> - </td></tr>');
+        $('#electric-data-table-1').append('<tr><td style="width:50px;">' + key + '</td><td>' + value['total'] + '</td><td>' + value['demand_kw'] + '</td><td>' + value['electric_at'] + '</td></tr>');
     });
 
     $.each(twoweekData, function (key, value) {
-        $('#electric-data-table-2').append('<tr><td style="width:50px;">' + key + '</td><td>' + value['total'] + '</td><td>' + value['demand_kw'] + '</td><td>' + value['electric_at'] + '</td><td> - </td><td> - </td></tr>');
+        $('#electric-data-table-2').append('<tr><td style="width:50px;">' + key + '</td><td>' + value['total'] + '</td><td>' + value['demand_kw'] + '</td><td>' + value['electric_at'] + '</td></tr>');
     });
 
-    $('#electric-data-table-1').append('<tr><td style="width:90px;">  合計  </td><td>' + oneweekTotal + '</td><<td> - </td><td> - </td><td> - </td><td> - </td></tr>');
-    $('#electric-data-table-1').append('<tr><td> CO2排出量 </td><<td>' + emission1 + '</td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
-    $('#electric-data-table-1').append('<tr><td> 原油換算</td><td>' + price1 + '</td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
-    $('#electric-data-table-2').append('<tr><td style="width:90px;">  合計  </td><td>' + twoweekTotal + '</td><<td> - </td><td> - </td><td> - </td><td> - </td></tr>');
-    $('#electric-data-table-2').append('<tr><td> CO2排出量 </td><<td>'+ emission2 +'</td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
-    $('#electric-data-table-2').append('<tr><td> 原油換算</td><td>' + price2 + '</td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
+    $('#electric-data-table-1').append('<tr><td style="width:90px;">  合計  </td><td>' + oneweekTotal + '</td><<td> - </td><td> - </td></tr>');
+    $('#electric-data-table-1').append('<tr><td> CO2排出量 </td><<td>' + emission1 + '</td><td> - </td><td> - </td></tr>');
+    $('#electric-data-table-1').append('<tr><td> 原油換算</td><td>' + price1 + '</td><td> - </td><td> - </td></tr>');
+    $('#electric-data-table-2').append('<tr><td style="width:90px;">  合計  </td><td>' + twoweekTotal + '</td><<td> - </td><td> - </td></tr>');
+    $('#electric-data-table-2').append('<tr><td> CO2排出量 </td><<td>'+ emission2 +'</td><td> - </td><td> - </td></tr>');
+    $('#electric-data-table-2').append('<tr><td> 原油換算</td><td>' + price2 + '</td><td> - </td><td> - </td></tr>');
 
 </script>

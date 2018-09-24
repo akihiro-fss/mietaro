@@ -52,14 +52,13 @@ class Model_ElectricInfo extends \orm\Model {
         	'total_price_2' => 0,
         );
 
-        //　店舗情報取得
+        //店舗情報取得
         $strData = self::selectBasicInfoForStrId($strId);
         //CO2排出係数
         $emisionFactor = (float)$strData['emission_factor'];
 
-        //　原油換算係数
+        //原油換算係数
         $conversionFactor = (float)$strData['conversion_factor'];
-
 
         //メイン
         if($onedayDate == ""){
@@ -141,7 +140,7 @@ class Model_ElectricInfo extends \orm\Model {
                 foreach($twodayElectricData as $index => $data){
                     if(strtotime($targetTimeArray['start'][$i]) < strtotime($data['electric_at']) && strtotime($targetTimeArray['end'][$i]) >= strtotime($data['electric_at'])){
                         $result['twoday_date'][$targetTimeArray['end'][$i]] = array($data['electric_kw'],$data['demand_kw']);
-                        $result['twoday_total'] += (int)$result['twoday_date'][$targetTimeArray['end'][$i]];
+                        $result['twoday_total'] += $data['electric_kw'];
                     }
                 }
             }
@@ -164,11 +163,11 @@ class Model_ElectricInfo extends \orm\Model {
 
             $result['param_date_1'] = date('Y-m-d',strtotime($onedayStart));
             $result['param_date_2'] = date('Y-m-d',strtotime($twodayStart));
-
             $result['total_emission_1'] = floor($result['oneday_total'] * $emisionFactor);
             $result['total_emission_2'] = floor($result['twoday_total']  * $emisionFactor);
             $result['total_price_1'] = floor($result['oneday_total'] * $conversionFactor);
             $result['total_price_2'] = floor($result['twoday_total'] * $conversionFactor);
+            $result['conversion_factor'] = $conversionFactor;
 
         return $result;
     }

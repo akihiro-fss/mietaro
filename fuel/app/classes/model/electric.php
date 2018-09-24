@@ -194,6 +194,7 @@ class Model_Electric extends \orm\Model {
         	'total_emission_2' => floor($result_twoday['total'] * $emisionFactor),
         	'total_price_1' => floor($result_oneday['total'] * $conversionFactor),
         	'total_price_2' => floor($result_twoday['total'] * $conversionFactor),
+        	'conversion_factor' => $conversionFactor
         );
 
         return $resultsArray;

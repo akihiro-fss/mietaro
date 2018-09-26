@@ -340,8 +340,8 @@
         });
         //日付行だけ別処理
         if(mergeFlg){
-            $('#weather_date').append('<td style="text-align:center;" colspan="' + oneColspan + '">' + firstelement['date'] + '</br>(' + firstelement['week'] + ')</td>');
-            $('#weather_date').append('<td style="text-align:center;" colspan="' + twoColspan + '">' + endelement['date'] + '</br>(' + endelement['week'] + ')</td>');
+            $('#weather_date').append('<td style="text-align:center;" colspan="' + onecolspan + '">' + firstelement['date'] + '</br>(' + firstelement['week'] + ')</td>');
+            $('#weather_date').append('<td style="text-align:center;" colspan="' + twocolspan + '">' + endelement['date'] + '</br>(' + endelement['week'] + ')</td>');
         }else{
            $('#weather_date').append('<td style="text-align:center;" colspan="8">' + firstelement['date'] + '</br>(' + firstelement['week'] + ')</td>');
         }

@@ -1,10 +1,10 @@
 <?php
 /**
  *
- * 作成日：2017/08/11
- * 更新日：2018/08/15
+ * 作成日：2017/8/11
+ * 更新日：2018/08/19
  * 作成者：戸田滉洋
- * 更新者：戸田滉洋
+ * 更新者：丸山　隼
  *
  * The Top Electric.
  *
@@ -25,7 +25,7 @@
 
 <?php echo Form::open(array('name' => 'search', 'method' => 'post', 'class' => 'form-horizontal')); ?>
 <table>
-    <tr><th align="left">表示したい日付を指定してください</th><th></tr></tr>
+    <tr><th align="left">表示したい日付を指定してください</th></tr>
 <tr>
     <th valign="top">
         <?php echo Form::input('onedaydate', 'onedaydate', array('type' => 'date')); ?>
@@ -35,8 +35,8 @@
         <ul style="list-style:none;">
             <li><b>使用電力量</b>　　　<span id="total_set_1"></span>kwh </li>
             <li><b>最大デマンド値</b> 　<span id="max_demand_1"></span>kW </li>
-            <li><b>CO2排出量</b>　　　-kg-CO2 </li>
-            <li><b>電力量料金</b>　　　-円 </li>
+            <li><b>CO2排出量</b>　　　<span id="total_emission_1"></span>kg-CO2 </li>
+            <li><b>電力量料金</b>　　　<span id="total_price_1"></span>円 </li>
         </ul>
     </td>
 </tr>
@@ -54,8 +54,8 @@
         <ul style="list-style:none;">
             <li><b>使用電力量</b>　　　<span id="total_set_2"></span>kwh </li>
             <li><b>最大デマンド値</b> 　<span id="max_demand_2"></span>kW </li>
-            <li><b>CO2排出量</b>　　　-kg-CO2 </li>
-            <li><b>電力量料金</b>　　　-円 </li>
+            <li><b>CO2排出量</b>　　　<span id="total_emission_2"></span>kg-CO2 </li>
+            <li><b>電力量料金</b>　　　<span id="total_price_2"></span>円 </li>
         </ul>
     </td>
 </tr>
@@ -69,11 +69,10 @@
 <input type="hidden" id="param_date_2" name="param_date_2" value="">
 
 <ul class="nav nav-tabs" style="border-bottom:none;">
-	<li class="nav-item"><a href="sample">気温グラフを表示</a></li>
+	<li class="nav-item"><a id="temperture_graph">気温グラフを表示</a></li>
 	<li class="nav-item"><a id="onedaydemand">デマンドグラフを表示</a></li>
 	<li class="nav-item"><a id="onedayinfo">詳細表を表示</a></li>
 </ul>
-
 
 ピンポイント天気予報　※事業所周辺の天気予報
 <table id="weather_table" class="table table-bordered">
@@ -81,14 +80,16 @@
     <tr id="weather_time"><th>時間</th></tr>
     <tr id="weather_info"><th>天気</th></tr>
     <tr id="weather_temp"><th>気温（℃）</th></tr>
-    <tr id="weather_rain"><th>降水量</br>(mm/h)</th></tr>
+    <tr id="weather_rain"><th>降水量<br/>(mm/h)</th></tr>
 </table>
+<div id="temperture_chart"></div>
+<input type="hidden" id="temperture_chart_status" value=0>
 
 <div class="form-group">
     <label for="comment">Comment:</label>
     <?php echo '<div id="alert_error" class="alert-error">' . Session::get_flash('error') . '</div>' ?>
     <?php echo '<div id="alert_success" class="alert-success">' . Session::get_flash('success') . '</div>' ?>
-    <textarea id="comment" class="form-control" rows="5" style="width:800px;"></textarea></br>
+    <textarea id="comment" class="form-control" rows="5" style="width:800px;"></textarea><br/>
     <input id="comment_button" class="btn btn-primary" type="submit" value="記録">
 </div>
 
@@ -102,11 +103,17 @@
     var total2 = onedayData['total_set_2'];
     var max1 = onedayData['max_demand_1'];
     var max2 = onedayData['max_demand_2'];
+    var emission1 = onedayData['total_emission_1'];
+    var emission2 = onedayData['total_emission_2'];
+    var price1 = onedayData['total_price_1'];
+    var price2 = onedayData['total_price_2'];
     var checked_flg = onedayData['checked_flg'];
     var targetDate1 = onedayData['target_date_1'];
     var targetDate2 = onedayData['target_date_2'];
     var str_id = onedayData['str_id'];
     var strDataArray = onedayData['str_data_array'];
+    var weatherInfoTableData = onedayData['weather_info']['weatherinfotabledata'];
+    var weatherInfoGraphData = onedayData['weather_info']['weatherinfographdata'];
 
     //電力量合計値セット
     $('#total_set_1').append(total1);
@@ -114,9 +121,17 @@
     //デマンド最大値セット
     $('#max_demand_1').append(max1);
     $('#max_demand_2').append(max2);
-
+    //CO2排出量セット
+    $('#total_emission_1').append(emission1);
+    $('#total_emission_2').append(emission2);
+    //電力量料金セット
+    $('#total_price_1').append(price1);
+    $('#total_price_2').append(price2);
+    //日付フォームセット
     $('#form_onedaydate').val(targetDate1);
     $('#form_twodaydate').val(targetDate2);
+    //気温グラフはデフォルトでは非表示
+    $('#temperture_chart').hide();
 
     //詳細ページに遷移
     $('#onedayinfo').click(function () {
@@ -146,17 +161,11 @@
             var data = new google.visualization.arrayToDataTable(chartdata);
             var options = {
                 "title": "使用電力量",
-                "titleTextStyle": {
-                    "fontSize": 20
-                },
-                "vAxis": {
-                    title: 'kw/h',
-                },
-                hAxis: {
-                    title: 'hour'
-                },
-                "width": 800,
-                "height": 500,
+                "titleTextStyle": {"fontSize": 20},
+                "vAxis": {title: 'kw/h',},
+                "hAxis": {title: 'hour'},
+                "width": 900,
+                "height": 600,
                 seriesType: 'line',
                 series: {1: {type: 'bars'}}
             };
@@ -171,17 +180,11 @@
             var data = new google.visualization.arrayToDataTable(chartdata);
             var options = {
                 "title": "使用電力量",
-                "titleTextStyle": {
-                    "fontSize": 20
-                },
-                "vAxis": {
-                    title: 'kw/h',
-                },
-                hAxis: {
-                    title: 'hour'
-                },
-                "width": 800,
-                "height": 500,
+                "titleTextStyle": {"fontSize": 20},
+                "vAxis": {title: 'kw/h'},
+                "hAxis": {title: 'hour'},
+                "width": 900,
+                "height": 600,
             };
             var chart = new google.visualization.ColumnChart(document.getElementById('chart'));
             chart.draw(data, options);
@@ -189,7 +192,7 @@
     }
 
     /* 天気予報表示処理 */
-    getWeatherInfo(strDataArray.latitude, strDataArray.longitude);
+    displayWeatherInfo(weatherInfoTableData,weatherInfoGraphData);
 
     /* 当日と前日のデータをマージ */
     function convertArray(oneday, yesterday, targetDate1, targetDate2, checked_flg) {
@@ -227,7 +230,6 @@
                 );
             }
         }
-
         return arrayData;
     }
 
@@ -238,6 +240,22 @@
     $('#comment_button').click(function (e) {
         var comment = $('#comment').val();
         addOnedayComment(str_id, targetDate1, comment);
+    });
+
+    /* 気温グラフ表示・非表示ボタンが押された時の動作 */
+    $('#temperture_graph').click(function(e){
+        //現在の表示ステータス取得
+        var tgs = $('#temperture_chart_status').val();
+        //表示・非表示処理
+        if(tgs == 0){
+            $('#temperture_chart').show();
+            $('#temperture_chart_status').val(1);
+            $('#temperture_graph').text('気温グラフを非表示');
+        }else{
+            $('#temperture_chart').hide();
+            $('#temperture_chart_status').val(0);
+            $('#temperture_graph').text('気温グラフを表示');
+        }
     });
 
     /* コメント取得 */
@@ -283,118 +301,70 @@
         });
     }
 
-    //天気予報取得メソッド
-    function getWeatherInfo(latitude, longitude) {
-        $.ajax({
-            url: "https://api.openweathermap.org/data/2.5/forecast?lat=" + latitude + "&lon=" + longitude + "&units=metric&appid=1a91ac37fb0b64e5fbd1ad9ccc94b87b",
-        }).fail(function () {
-            // エラー処理
-            console.log('天気情報の取得に失敗');
-        }).done(function (res) {
-            // 成功処理
-            viewsWeatherInfo(res);
-        });
-    }
-
-    //天気予報表示処理
-    function viewsWeatherInfo(data) {
-        //天気予報情報配列
-        var list = data.list;
-        var result = [];
-
-        var imgUrlBase = "http://openweathermap.org/img/w/";
-        var extension = ".png";
-        var counter = 0;
-
-        //現在時間取得
-        var nowTime = new Date();
-        var tempTime = new Date(list[0]['dt_txt']);
-
-        //表示する予報情報分だけ取得する
-        $.each(list, function (index, data) {
-            if (counter < 8) {
-                if (nowTime < new Date(data['dt_txt'])) {
-                    result.push(data);
-                    counter++;
-                }
-            }
-        });
-
-        //テーブルへの表示処理
-        var weekArray = ['（日）', '(月)', '（火）', '（水）', '（木）', '（金）', '（土）'];
-
-        tmpOneDate = new Date(result[0]['dt_txt']);
-        tmpTwoDate = new Date(result[7]['dt_txt']);
-        calcOneDate = '';
-        calcTwoDate = '';
-        oneMonth = '';
-        twoMonth = '';
-        oneDate = '';
-        twoDate = '';
-        oneWeek = '';
-        twoWeek = '';
-        oneColspan = 0;
-        twoColspan = 0;
-
-        if (tmpOneDate.getDate() == tmpTwoDate.getDate()) {
-            calcFlg = false;
-            var oneMonth = tmpOneDate.getMonth() + 1;//月
-            var oneDate = tmpOneDate.getDate();//日
-            var oneWeek = weekArray[tmpOneDate.getDay()];//曜日
-        } else {
-            calcFlg = true;
-            calcOneDate = tmpOneDate.getDate();
-            calcTwoDate = tmpTwoDate.getDate();
-
-            var oneMonth = tmpOneDate.getMonth() + 1;//月
-            var oneDate = tmpOneDate.getDate();//日
-            var oneWeek = weekArray[tmpOneDate.getDay()];//曜日
-            var twoMonth = tmpTwoDate.getMonth() + 1;//月
-            var twoDate = tmpTwoDate.getDate();//日
-            var twoWeek = weekArray[tmpTwoDate.getDay()];//曜日
+    //天気予報表示処理v2
+    function  displayWeatherInfo(weatherInfoTableData,weatherInfoGraphData){
+        //天気予報表の作成
+        var onecolspan = 0;
+        var twocolspan = 0;
+        //日付要素の結合フラグ
+        var mergeFlg = false;
+        //最初の要素
+        var firstelement = weatherInfoTableData[0];
+        //最後の要素
+        var endelement = weatherInfoTableData[weatherInfoTableData.length-1];
+        if(firstelement['date'] != endelement['date']){
+        	mergeFlg = true;
         }
-
-        $.each(result, function (index, data) {
-            /* テーブル表示データ作成 */
-            var dateTime = new Date(data['dt_txt']);
-
-            var date = dateTime.getDate();
-            if (calcFlg) {
-                if (date == calcOneDate) {
-                    oneColspan++;
-                } else if (date == calcTwoDate) {
-                    twoColspan++;
-                }
-            }
-
-            //時間だけ抜き取る
-            var hours = dateTime.getHours();
+        $.each(weatherInfoTableData, function (index, data) {
+            //時間
+            var hour = data['hour'];
             //天気アイコン
-            var weatherIconUrl = imgUrlBase + data['weather'][0]['icon'] + extension;
+            var weatherIconUrl = data['icon_info'];
             //気温
-            var temp = data['main']['temp'];
+            var temperture = data['temperture'];
             //降水量
             var rain = data['rain'];
-            //降水量０もしくは、APiからのレスポンスに降水量が含まれていない場合は０をセット
-            if (!rain || Object.keys(rain).length == 0) {
-                rain = 0;
-            } else {
-                rain = Math.round(rain['3h']);
-            }
-            /* テーブル作成 */
-            $('#weather_time').append('<td>' + hours + '</td>');
+            //テーブル作成
+            $('#weather_time').append('<td>' + hour + '</td>');
             $('#weather_info').append('<td><img src="' + weatherIconUrl + '"></td>');
-            $('#weather_temp').append('<td>' + Math.floor(temp) + '</td>');
+            $('#weather_temp').append('<td>' + temperture + '</td>');
             $('#weather_rain').append('<td>' + rain + '</td>');
+            //日付要素を結合する必要がある場合の処理
+            if(mergeFlg){
+                if(data['date'] == firstelement['date']){
+                	onecolspan++;
+                }else if(data['date'] == endelement['date']){
+                	twocolspan++;
+                }
+            }
         });
-        //日付の行だけ別処理
-        if (calcFlg) {
-            $('#weather_date').append('<td colspan="' + oneColspan + '">' + oneMonth + '/' + oneDate + '</br>' + oneWeek + '</td>');
-            $('#weather_date').append('<td colspan="' + twoColspan + '">' + twoMonth + '/' + twoDate + '</br>' + twoWeek + '</td>');
-        } else {
-            $('#weather_date').append('<td colspan="8">' + oneMonth + '/' + oneDate + '</br>' + oneWeek + '</td>');
+        //日付行だけ別処理
+        if(mergeFlg){
+            $('#weather_date').append('<td style="text-align:center;" colspan="' + onecolspan + '">' + firstelement['date'] + '</br>(' + firstelement['week'] + ')</td>');
+            $('#weather_date').append('<td style="text-align:center;" colspan="' + twocolspan + '">' + endelement['date'] + '</br>(' + endelement['week'] + ')</td>');
+        }else{
+           $('#weather_date').append('<td style="text-align:center;" colspan="8">' + firstelement['date'] + '</br>(' + firstelement['week'] + ')</td>');
         }
 
+        //気温グラフを作成(googlechart)
+        chartdata_temperture = weatherInfoGraphData;
+        google.charts.load('current', {'packages': ['corechart']});
+        google.setOnLoadCallback(drawChart_temperture);
+        	function drawChart_temperture() {
+            	var data_temperture = new google.visualization.arrayToDataTable(chartdata_temperture);
+	            var options_temperture = {
+	                "title": "気温グラフ",
+	                "titleTextStyle": {"fontSize": 20},
+	                "vAxis": {title: '℃',},
+	                "hAxis": {title: '時'},
+	                "width": 900,
+	                "height": 600,
+	                seriesType: 'line',
+	                series: {1: {type: 'bars'}}
+	            };
+	            var chart_temperture = new google.visualization.ComboChart(document.getElementById('temperture_chart'));
+	            chart_temperture.draw(data_temperture, options_temperture);
+	        }
     }
 
     //POST送信用

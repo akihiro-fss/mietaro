@@ -30,7 +30,6 @@ class Controller_Electric_weekinfo extends Controller {
         $param = \Input::post();
         $oneweekDate = \Arr::get($param,'param_date_1',null);
         $twoweekDate = \Arr::get($param,'param_date_2',null);
-
         //店舗ID取得
         $auth = Auth::instance();
         $strId = $auth->get_str_id();

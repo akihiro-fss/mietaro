@@ -3,7 +3,7 @@
 /**
  *
  * 作成日：2017/07/17
- * 更新日：2017/08/14
+ * 更新日：2017/08/25
  * 作成者：戸田滉洋
  * 更新者：戸田滉洋
  *
@@ -41,6 +41,13 @@ class Controller_Sidebar extends Controller_admin_login {
         }
         $electricMonth = Model_Electric::getSideBerData();
         $addMonth = Controller_Sidebar::addSideBarData($electricMonth);
+        // 前月の最大デマンド値取得
+        $demand_max_kw = Model_analysis::getdemandMax();
+        if (isset($demand_max_kw)) {
+            $demand_max_kw = $demand_max_kw;
+        } else {
+            $demand_max_kw = 0;
+        }
         //デマンド値取得
         $demand_key = Model_BasicInfo::getDemandKey();
         if (isset($demand_key['demand_alarm'])) {
@@ -48,11 +55,28 @@ class Controller_Sidebar extends Controller_admin_login {
         } else {
             $demandKey = '-';
         }
+        //契約電力取得
+        $contract_de = Model_BasicInfo::getContractDe();
+        if (isset($contract_de['contract_de'])) {
+            $contractDe = $contract_de['contract_de'];
+        } else {
+            $contractDe = '-';
+        }
+        //CO2排出係数
+        $eFactor = Model_BasicInfo::getEfactor();
+        if (isset($eFactor['emission_factor'])) {
+            $ef = $eFactor['emission_factor'];
+        } else {
+            $ef = '-';
+        }
         $data = array();
         $data['month'] = $monthdate;
         $data['MToneday'] = $monthone;
         $data['electricMonth'] = $addMonth;
+        $data['demandMax'] = $demand_max_kw;
         $data['demandKey'] = $demandKey;
+        $data['contractDe'] = $contractDe;
+        $data['ef'] = $ef;
         return $data;
     }
 

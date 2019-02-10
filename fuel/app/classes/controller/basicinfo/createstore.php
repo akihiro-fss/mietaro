@@ -16,7 +16,6 @@
  * @package app
  * @extends Controller
  */
-
 class Controller_BasicInfo_createstore extends Controller_admin_login {
 
     public function before() {
@@ -56,7 +55,10 @@ class Controller_BasicInfo_createstore extends Controller_admin_login {
                     Input::post('str_vt_1') == null or
                     Input::post('str_vt_2') == null or
                     Input::post('power_com_id') == null or
-                    Input::post('demand_alarm') == null
+                    Input::post('demand_alarm') == null or
+                    Input::post('contract_de') == null or
+                    Input::post('emission_factor') == null or
+                    Input::post('conversion_factor') == null
             ) {
                 Session::set_flash('error', '入力されてない箇所があります');
                 Response::redirect('basicinfo/createstore');
@@ -87,6 +89,15 @@ class Controller_BasicInfo_createstore extends Controller_admin_login {
             } else if (false == preg_match('/\d/', Input::post('demand_alarm'))) {
                 Session::set_flash('error', 'デマンド警報値は数字を入力してください');
                 Response::redirect('basicinfo/createstore');
+            } else if (false == preg_match('/\d/', Input::post('contract_de'))) {
+                Session::set_flash('error', '契約電力は数字を入力してください');
+                Response::redircet('basicinfo/createstore');
+            } else if (false == preg_match('/\d/', Input::post('emission_factor'))) {
+                Session::set_flash('error', 'CO2排出係数は数字を入力してください');
+                Response::redircet('basicinfo/createstore');
+            } else if (false == preg_match('/\d/', Input::post('conversion_factor'))) {
+                Session::set_flash('error', '原油換算係数は数字で入力してください');
+                Response::redirect('basicinfo/createstore');
             }
 
             $data = array();
@@ -115,12 +126,15 @@ class Controller_BasicInfo_createstore extends Controller_admin_login {
             $data['str_vt_2'] = Input::post('str_vt_2');
             $data['power_com_id'] = Input::post('power_com_id');
             $data['demand_alarm'] = Input::post('demand_alarm');
+            $data['contract_de'] = Input::post('contract_de');
+            $data['emission_factor'] = Input::post('emission_factor');
+            $data['conversion_factor'] = Input::post('conversion_factor');
 
             $createstore = Model_BasicInfo::createstore($data);
 
             if ($createstore) {
                 //登録成功のメッセージ
-                Session::set_flash('success', '更新しました');
+                Session::set_flash('success', '登録しました');
                 //indexページへ移動
             } else {
                 //データが保存されなかったら

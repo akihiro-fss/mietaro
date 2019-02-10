@@ -2,8 +2,8 @@
 
 /**
  *
- * 作成日：2017/07/17
- * 更新日：2017/12/30
+ * 作成日：2018/08/19
+ * 更新日：2018/08/19
  * 作成者：戸田滉洋
  * 更新者：戸田滉洋
  *
@@ -16,7 +16,7 @@
  * @extends Controller
  */
 
-class Controller_Electric_year extends Controller
+class Controller_Electric_yearDemand extends Controller
 {
   public function before()
   {
@@ -27,15 +27,16 @@ class Controller_Electric_year extends Controller
   }
   public function action_index()
   {
-    //テーマのインスタンス化
-    $theme=\Theme::forge();
-     //テーマにテンプレートのセット
-     $theme->set_template('template');
-     //テーマのテンプレートにタイトルをセット
-     $theme->get_template()->set('title','MIETARO');
-     //テーマのテンプレートにビューとページデータをセット
-     $theme->get_template()->set('content',$theme->view('electric/year'));         //テーマのテンプレートにビューとページデータをセット
-     $theme->get_template()->set('sidebar',$theme->view('sidebar'));
-     return $theme;
+      $yeardata = Model_Electric::yeardata();
+      //テーマのインスタンス化
+      $theme = \Theme::forge();
+      //テーマにテンプレートのセット
+      $theme->set_template('template');
+      //テーマのテンプレートにタイトルをセット
+      $theme->get_template()->set('title', 'MIETARO');
+      //テーマのテンプレートにビューとページデータをセット
+      $theme->get_template()->set('content', $theme->view('electric/yeardemand', $yeardata)->set('yearData',$yeardata));
+      $theme->get_template()->set('sidebar', $theme->view('sidebar'));
+      return $theme;
   }
 }

@@ -3,7 +3,7 @@
 /**
  *
  * 作成日：2017/07/17
- * 更新日：2017/11/12
+ * 更新日：2018/08/17
  * 作成者：戸田滉洋
  * 更新者：戸田滉洋
  *
@@ -17,8 +17,8 @@
  * @extends Model
  *
  */
-class Model_BasicInfo extends \orm\Model {
-
+class Model_BasicInfo extends \orm\Model
+{
     protected static $_table_name = 'BasicInfo';
     protected static $_primary_key = array('str_id');
     protected static $_properties = array(
@@ -42,6 +42,9 @@ class Model_BasicInfo extends \orm\Model {
         'str_vt_2', //VT比二次側
         'power_com_id', //電力会社ID
         'demand_alarm', //デマンド警報値
+        'contract_de', //契約電力
+        'emission_factor', //CO2排出係数
+        'conversion_factor', //原油換算係数
         'created_at', //作成日
         'updated_at', //更新日
     );
@@ -65,8 +68,8 @@ class Model_BasicInfo extends \orm\Model {
         )
     );
 
-    public static function createstore($data) {
-
+    public static function createstore($data)
+    {
         $query = Model_BasicInfo::forge()->set(array(
             'str_na' => $data['str_na'], //店舗名
             'ep_id' => $data['ep_id'], //企業ID
@@ -87,13 +90,17 @@ class Model_BasicInfo extends \orm\Model {
             'str_vt_2' => $data['str_vt_2'], //VT比二次側
             'power_com_id' => $data['power_com_id'], //電力会社ID
             'demand_alarm' => $data['demand_alarm'], //デマンド警報値
+            'contract_de' => $data['contract_de'], //契約電力
+            'emission_factor' => $data['emission_factor'], //CO2排出係数
+            'conversion_factor' => $data['conversion_factor'], //原油換算係数
         ));
 
         $result = $query->save();
         return $result;
     }
 
-    public static function strdata() {
+    public static function strdata()
+    {
         $data = array();
         //Authのインスタンス化
         $auth = Auth::instance();
@@ -107,8 +114,8 @@ class Model_BasicInfo extends \orm\Model {
         return $data;
     }
 
-    public static function strupdate($str_id, $data) {
-
+    public static function strupdate($str_id, $data)
+    {
         $query = Model_BasicInfo::find($str_id);
         $query->str_na = $data->str_na;
         $query->pref_id = $data->pref_id;
@@ -127,11 +134,15 @@ class Model_BasicInfo extends \orm\Model {
         $query->str_ct_2 = $data->str_ct_2;
         $query->str_vt_1 = $data->str_vt_1;
         $query->str_vt_2 = $data->str_vt_2;
+        $query->contract_de = $data->contract_de;
+        $query->emission_factor = $data->emission_factor;
+        $query->conversion_factor = $data->conversion_factor;
         $query->save();
         return $query;
     }
 
-    public static function strlist() {
+    public static function strlist()
+    {
         $data = array();
         $query = Model_BasicInfo::find('all');
         foreach ($query as $row):
@@ -140,13 +151,15 @@ class Model_BasicInfo extends \orm\Model {
         return $data;
     }
 
-    public static function getStoreNameByEpId($epId) {
+    public static function getStoreNameByEpId($epId)
+    {
         $query = "SELECT str_id,str_na FROM BasicInfo WHERE ep_id = $epId";
         $data = \DB::query($query)->execute()->as_array();
         return $data;
     }
 
-    public static function epstrlist() {
+    public static function epstrlist()
+    {
         //Authのインスタンス化
         $auth = Auth::instance();
         $ep_id = $auth->get_ep_id();
@@ -160,7 +173,8 @@ class Model_BasicInfo extends \orm\Model {
         return $data;
     }
 
-    public static function getStrDataByStrId($strId) {
+    public static function getStrDataByStrId($strId)
+    {
         $query = "SELECT * FROM BasicInfo WHERE str_id = $strId";
         $data = DB::query($query)->execute()->current();
         return $data;
@@ -170,7 +184,8 @@ class Model_BasicInfo extends \orm\Model {
      * サイドバーをデマンド値を表示
      * @return data
      */
-    public static function getDemandKey() {
+    public static function getDemandKey()
+    {
         $auth = Auth::instance();
         $str_id = $auth->get_str_id();
         $query = "SELECT demand_alarm FROM BasicInfo WHERE str_id = $str_id";
@@ -178,4 +193,42 @@ class Model_BasicInfo extends \orm\Model {
         return $data;
     }
 
+    /**
+     * サイドバーを契約電力を表示
+     * @return data
+     */
+    public static function getContractDe()
+    {
+        $auth = Auth::instance();
+        $str_id = $auth->get_str_id();
+        $query = "SELECT contract_de FROM BasicInfo  WHERE str_id = $str_id";
+        $data = DB::query($query)->execute()->current();
+        return $data;
+    }
+    
+    /**
+     * CO2排出係数取得
+     * @return data
+     */
+    public static function getEfactor()
+    {
+        $auth = Auth::instance();
+        $str_id = $auth->get_str_id();
+        $query = "SELECT emission_factor FROM BasicInfo  WHERE str_id = $str_id";
+        $data = DB::query($query)->execute()->current();
+        return $data;
+    }
+
+    /**
+     * 原油換算係数取得
+     * @return data
+     */
+    public static function getCfactor()
+    {
+        $auth = Auth::instance();
+        $str_id = $auth->get_str_id();
+        $query = "SELECT conversion_factor FROM BasicInfo  WHERE str_id = $str_id";
+        $data = DB::query($query)->execute()->current();
+        return $data;
+    }
 }

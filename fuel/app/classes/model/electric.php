@@ -792,6 +792,10 @@ class Model_Electric extends \orm\Model {
         $targetDate1 = date('Y-m-d',strtotime($month_st));
         $targetDate2 = date('Y-m-d',strtotime($month_ago_st));
 
+        //１ヶ月目の最大デマンド値
+        $month_max_deman_1 = 0;
+        //２ヶ月目の最大デマンド値
+        $month_max_deman_2 = 0;
         foreach($date1Array as $index=>$date){
             if($index == 0){ continue;}
             //平均値計算用
@@ -801,6 +805,9 @@ class Model_Electric extends \orm\Model {
             $demand_count2 = 0;
             $max_demand_at_1 = null;
             $max_demand_at_2 = null;
+            //最大値保持用
+            $max_demand_1 = 0;
+            $max_demand_2 = 0;
 
             foreach($result_one_month_ago as $tmpData){
                 if(strpos($tmpData['electric_at'],$targetDate1) !== FALSE){
@@ -817,6 +824,12 @@ class Model_Electric extends \orm\Model {
                            $max_demand_at_1 = $tmpData['electric_at'];
                        }
                    }
+                   //1ヶ月目の最大デマンド計算
+                   if(intVal($tmpData['demand_kw']) > 0){
+                       if(intVal($tmpData['demand_kw']) > $month_max_deman_1){
+                           $month_max_deman_1 = $tmpData['demand_kw'];
+                       }
+                    }
                 }
             }
 
@@ -835,6 +848,12 @@ class Model_Electric extends \orm\Model {
                            $max_demand_at_2 = $tmpData['electric_at'];
                        }
                    }
+                   //２ヶ月目の最大デマンド計算
+                   if(intVal($tmpData['demand_kw']) > 0){
+                    if(intVal($tmpData['demand_kw']) > $month_max_deman_2){
+                        $month_max_deman_2 = $tmpData['demand_kw'];
+                    }
+                 }
                }
             }
 
@@ -871,8 +890,8 @@ class Model_Electric extends \orm\Model {
             'total_two_month' => $totalTwoMonth,
             'result_demand' => $demandArray,
         	'result_demand_at' => $demandTriggerArray,
-            'max_demand_one_month' => $max_demand_1,
-            'max_demand_two_month' => $max_demand_2,
+            'max_demand_one_month' => $month_max_deman_1,
+            'max_demand_two_month' => $month_max_deman_2,
         );
     }
 

@@ -80,7 +80,7 @@ class Model_Electric extends \orm\Model {
      * 店舗の基本情報取得
      */
     private static function selectBasicInfoForStrId($str_id){
-    	$sql = "SELECT * FROM basicInfo WHERE str_id = $str_id";
+    	$sql = "SELECT * FROM BasicInfo WHERE str_id = $str_id";
     	return \DB::query($sql)->execute()->current();
     }
 

@@ -141,7 +141,7 @@
                     "fontSize": 20
                 },
                 "vAxis": {
-                    title: 'kw/h',
+                    title: 'kW',
                 },
                 hAxis: {
                     title: 'day'
@@ -166,7 +166,7 @@
                     "fontSize": 20
                 },
                 "vAxis": {
-                    title: 'kw/h',
+                    title: 'kW',
                 },
                 hAxis: {
                     title: 'day'

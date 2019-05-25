@@ -139,7 +139,7 @@
                     "fontSize": 20
                 },
                 "vAxis": {
-                    title: 'kw/h',
+                    title: 'kW',
                 },
                 hAxis: {
                     title: 'month'
@@ -164,7 +164,7 @@
                     "fontSize": 20
                 },
                 "vAxis": {
-                    title: 'kw/h',
+                    title: 'kW',
                 },
                 hAxis: {
                     title: 'month'

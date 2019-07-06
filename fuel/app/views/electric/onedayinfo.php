@@ -29,12 +29,12 @@
     <table id="electric-data-table" class="table table-bordered">
         <tr>
             <th></th>
-            <th style="text-align:center;" colspan="3">
+            <th style="text-align:center;" colspan="5">
                 メイン詳細<br/>
                 <input type="date" name="param_date_1" value="param_date_1" id="form_param_date_1" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
             </th>
-            <th style="text-align:center;" colspan="3">
+            <th style="text-align:center;" colspan="5">
                 比較対象詳細<br/>
                 <input type="date" name="param_date_2" value="param_date_2" id="form_param_date_2" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
@@ -46,14 +46,18 @@
             <th>使用電力量(kWh)</th>
             <th>電力量料金(円)</th>
             <th>デマンド(kW)</th>
+            <th>気温(℃)</th>
+            <th>湿度(%)</th>
             <th>使用電力量(kwh)</th>
             <th>電力量料金(円)</th>
             <th>デマンド(kwh)</th>
+            <th>気温(℃)</th>
+            <th>湿度(%)</th>
             <th>使用電力量(kwh)</th>
             <th>電力量料金(円)</th>
             <th>比率(％)</th>
         </tr>
-        <tr><td>0:00~</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>0:00~</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
     </table>
 <?php echo Form::close(); ?>
 
@@ -87,6 +91,10 @@
         totalPrice1 += price1;
         //メイン詳細-デマンド
         var demand1 = value[1];
+        //メイン詳細-気温
+        var temperature1 = value['temperature'];
+        //メイン詳細-湿度
+        var humidity1 = value['humidity'];
         //比較対象詳細-使用電力量
         var electric2 =  twodayData[key][0];
         //比較対象詳細-電力量料金
@@ -94,6 +102,10 @@
         totalPrice2 += price2;
         //比較対象詳細-デマンド
         var demand2 = twodayData[key][1];
+        //比較対象詳細-気温
+        var temperature2 = twodayData[key]['temperature'];
+        //比較対象詳細-湿度
+        var humidity2 = twodayData[key]['humidity'];
         //比較表-使用電力量
         var diffElectric = parseInt(electric2)-parseInt(electric1);
         var diffElectricStr = diffElectric;
@@ -118,7 +130,7 @@
         }else{
         	var diffPercentStr = '%';
         }
-        $('#electric-data-table').append('<tr><td style="width:50px;">' + time + '</td><td>' + electric1 + '</td><td>' + price1 + '</td><td>' + demand1 + '</td><td>' + electric2 + '</td><td>' + price2 + '</td><td>' + demand2 + '</td><td>' + diffElectricStr + '</td><td>' + diffPriceStr + '</td><td>' + diffPercentStr + '</td></tr>');
+        $('#electric-data-table').append('<tr><td style="width:50px;">' + time + '</td><td>' + electric1 + '</td><td>' + price1 + '</td><td>' + demand1 + '</td><td>' + temperature1 +'</td><td>'+ humidity1 +'</td><td>' + electric2 + '</td><td>' + price2 + '</td><td>' + demand2 + '</td><td>' + temperature2 + '</td><td>' + humidity2 + '</td><td>' + diffElectricStr + '</td><td>' + diffPriceStr + '</td><td>' + diffPercentStr + '</td></tr>');
     });
     //比較表-合計-使用電力量
     var diffTotalElectric = parseInt(twodayTotal - onedayTotal);
@@ -146,8 +158,8 @@
      	diffTotalPercentStr = '%';
     }
 
-    $('#electric-data-table').append('<tr><td style="width:50px;">  合計  </td><td>' + onedayTotal + '</td><td>' + totalPrice1 + '</td><td> </td><td>' + twodayTotal + '</td><td>' + totalPrice2 + '</td><td></td><td>'+ diffTotalElectricStr +'</td><td>' + diffTotalPriceStr + '</td><td>' + diffTotalPercentStr + '</td></tr>');
-    $('#electric-data-table').append('<tr><td style="width:50px;"> CO2排出量 </td><td colspan="3">' + emission1 + '<td colspan="3">' + emission2 + ' </td><td colspan="3"></td></tr>');
-    $('#electric-data-table').append('<tr><td style="width:50px;"> 原油換算</td><td colspan="3">' + price1 + '<td colspan="3">' + price2 + '</td><td colspan="3"></td></tr>');
+    $('#electric-data-table').append('<tr><td style="width:50px;">  合計  </td><td>' + onedayTotal + '</td><td>' + totalPrice1 + '</td><td> - </td><td> - </td><td> - </td><td>' + twodayTotal + '</td><td>' + totalPrice2 + '</td><td> - </td><td> - </td><td> - </td><td>'+ diffTotalElectricStr +'</td><td>' + diffTotalPriceStr + '</td><td>' + diffTotalPercentStr + '</td></tr>');
+    $('#electric-data-table').append('<tr><td style="width:50px;"> CO2排出量 </td><td colspan="5">' + emission1 + '<td colspan="5">' + emission2 + ' </td><td colspan="3"></td></tr>');
+    $('#electric-data-table').append('<tr><td style="width:50px;"> 原油換算</td><td colspan="5">' + price1 + '<td colspan="5">' + price2 + '</td><td colspan="3"></td></tr>');
 
 </script>

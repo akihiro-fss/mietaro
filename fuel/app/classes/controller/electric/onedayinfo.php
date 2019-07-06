@@ -28,15 +28,26 @@ class Controller_Electric_onedayinfo extends Controller {
 
         //日付フォームの値を取得
         $param = \Input::post();
-        $onedayDate = \Arr::get($param,'param_date_1',null);
-        $twodayDate = \Arr::get($param,'param_date_2',null);
+        $onedayDate = \Arr::get($param,'param_date_1');
+        $twodayDate = \Arr::get($param,'param_date_2');
 
+
+        if(empty($onedayDate)){
+            $onedayDate = date('Y-m-d');
+        }
+        if(empty($twodayDate)){
+            $twodayDate = date('Y-m-d',strtotime('-1 day'));
+        }
+        
         //店舗ID取得
         $auth = Auth::instance();
         $strId = $auth->get_str_id();
 
         //使用電力詳細情報を取得
-        $result = \Model_ElectricInfo::getOnedayData($strId,$onedayDate, $twodayDate);
+        $onedayinfo = \Model_ElectricInfo::getOnedayData($strId,$onedayDate, $twodayDate);
+
+        //各時間帯に気温・湿度情報を追加する
+        $onedayinfo = Model_Electric::addInformationForOnedayInfo($onedayDate,$twodayDate,$onedayinfo);
 
         //一日分のデータを取得
         //テーマのインスタンス化
@@ -46,7 +57,7 @@ class Controller_Electric_onedayinfo extends Controller {
         //テーマのテンプレートにタイトルをセット
         $theme->get_template()->set('title', 'MIETARO');
         //テーマのテンプレートにビューとページデータをセット
-        $theme->get_template()->set('content', $theme->view('electric/onedayinfo')->set('electricData',$result));
+        $theme->get_template()->set('content', $theme->view('electric/onedayinfo')->set('electricData',$onedayinfo));
         //テーマのテンプレートにビューとページデータをセット
         $theme->get_template()->set('sidebar', $theme->view('sidebar'));
 

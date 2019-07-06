@@ -1386,6 +1386,7 @@ class Model_Electric extends \orm\Model {
                 if ($key == 0) continue;
 
                 $timestamp = strtotime($data['time']);
+                
                 $hm_current = '~'.date('H:i',$timestamp);
                 $hm_prev = '~' .date('H:i',strtotime('-30 minute',$timestamp));
 
@@ -1652,19 +1653,37 @@ class Model_Electric extends \orm\Model {
         
         //指定日付のタイムスタンプ
         $timestamp = strtotime($datetime);
+        $check = date('Y-m-d H:i',$timestamp);
         
         $api = new Model_Api_Weather();
+
         $response = $api->getWeather($latitude,$longitude,$timestamp);
+
         $list =  json_decode($response)->hourly->data;
+
         $result = array();
+
         //時間・気温・湿度のみを抽出
-        foreach($list as $data){
+
+        for($i=0;$i<24;$i++){
+            $tmp_time = date("Y-m-d H:i",strtotime($check . "+$i hour"));
+            foreach($list as $key=>$data){
+                $time = date('Y-m-d H:i',$data->time);
+                $temperature = '-';
+                $humidity = '-';
+                if($tmp_time == $time){
+                    $temperature = $data->temperature;
+                    $humidity = $data->humidity * 100;
+                    break;
+                }
+            }
             $result[] = array(
-                'time' => date('Y-m-d H:i',$data->time),
-                'temperature' => $data->temperature,
-                'humidity' => $data->humidity * 100
+                'time' => $tmp_time,
+                'temperature' => $temperature,
+                'humidity' => $humidity
             );
         }
+
         return $result;
     }
 }

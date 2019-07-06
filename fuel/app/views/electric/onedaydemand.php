@@ -127,9 +127,11 @@
     $('#total_price_1').append(price1);
     $('#total_price_2').append(price2);
 
-
     $('#form_onedaydate').val(targetDate1);
     $('#form_twodaydate').val(targetDate2);
+
+    //気温グラフはデフォルトでは非表示
+    $('#temperture_chart').hide();
 
   //詳細ページに遷移
     $('#onedayinfo').click(function () {

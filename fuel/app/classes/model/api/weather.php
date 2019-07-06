@@ -17,10 +17,10 @@
 class Model_Api_Weather {
 
     //エンドポイント
-    protected $url_darksky = "https://api.darksky.net/forecast/6a209d039050d0ab085064ab9018c09e/";
+    protected $url_darksky = "https://api.darksky.net/forecast/a10e7c1ad14f74f27a7279006bf326a9/";
 
     //appid
-    protected $appid_darksky ='6a209d039050d0ab085064ab9018c09e';
+    protected $appid_darksky ='a10e7c1ad14f74f27a7279006bf326a9';
 
     //緯度
     protected $lat_darksky = null;

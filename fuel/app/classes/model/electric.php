@@ -1296,7 +1296,7 @@ class Model_Electric extends \orm\Model {
     	}
 
     	 //darkskyapiで天気情報取得（基準となる配列に気温と降水量を当てはめていく
-    	 $url = 'https://api.darksky.net/forecast/6a209d039050d0ab085064ab9018c09e/'.$latitude.','.$longitude.'?units=si';
+    	 $url = 'https://api.darksky.net/forecast/a10e7c1ad14f74f27a7279006bf326a9/'.$latitude.','.$longitude.'?units=si';
     	 // curlの処理を始める合図(openweathermap)
     	 $curl = curl_init($url);
     	 //リクエストのオプションをセットしていく
@@ -1334,7 +1334,7 @@ class Model_Electric extends \orm\Model {
 
     	 /*darkskyapiで当日の0～24時まで気温を取得(24時は23時の気温を引き継がせる)*/
     	 $nowdate = date('Y-m-d\T00:00:00',$nowtimestamp);
-    	 $url = 'https://api.darksky.net/forecast/6a209d039050d0ab085064ab9018c09e/'.$latitude.','.$longitude.','.$nowdate.'?units=si';
+    	 $url = 'https://api.darksky.net/forecast/a10e7c1ad14f74f27a7279006bf326a9/'.$latitude.','.$longitude.','.$nowdate.'?units=si';
     	 // curlの処理を始める合図(openweathermap)
     	 $curl = curl_init($url);
     	 //　リクエストのオプションをセットしていく

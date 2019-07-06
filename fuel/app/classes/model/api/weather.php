@@ -34,7 +34,6 @@ class Model_Api_Weather {
     //取得オプション
     protected $option_darksky = "?units=si&exclude=currently&lang=ja";
 
-
     /**
      * 指定日付の１時間毎の気象情報を取得
      * darksky使用
@@ -54,13 +53,11 @@ class Model_Api_Weather {
     	curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET'); // メソッド指定
     	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // 証明書の検証を行わない
     	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true); // レスポンスを文字列で受け取る
-    	//レスポンスを変数に入れる
-    	$response = curl_exec($curl);
+        //レスポンスを変数に入れる
+        $response = curl_exec($curl);
     	//curlの処理を終了
         curl_close($curl);
         
         return $response;
-
     }
-
 }

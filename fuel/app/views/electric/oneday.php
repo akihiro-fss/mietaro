@@ -359,10 +359,9 @@
 	                "hAxis": {title: '時'},
 	                "width": 900,
 	                "height": 600,
-	                seriesType: 'line',
-	                series: {1: {type: 'bars'}}
+	                seriesType: 'line'
 	            };
-	            var chart_temperture = new google.visualization.ComboChart(document.getElementById('temperture_chart'));
+	            var chart_temperture = new google.visualization.LineChart(document.getElementById('temperture_chart'));
 	            chart_temperture.draw(data_temperture, options_temperture);
 	        }
     }

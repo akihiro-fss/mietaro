@@ -173,6 +173,7 @@
                 },
                 "width": 800,
                 "height": 500,
+                "colors":['blue','red'],
                 seriesType: 'line',
                 series: {1: {type: 'bars'}}
             };
@@ -198,6 +199,7 @@
                 },
                 "width": 800,
                 "height": 500,
+                "colors":['red'],
             };
             var chart = new google.visualization.ColumnChart(document.getElementById('chart'));
             chart.draw(data, options);
@@ -372,10 +374,10 @@
 	                "hAxis": {title: '時'},
 	                "width": 900,
 	                "height": 600,
-	                seriesType: 'line',
-	                series: {1: {type: 'bars'}}
+                    "colors":['red','blue'],
+	                seriesType: 'line'
 	            };
-	            var chart_temperture = new google.visualization.ComboChart(document.getElementById('temperture_chart'));
+                var chart_temperture = new google.visualization.LineChart(document.getElementById('temperture_chart'));
 	            chart_temperture.draw(data_temperture, options_temperture);
 	        }
     }

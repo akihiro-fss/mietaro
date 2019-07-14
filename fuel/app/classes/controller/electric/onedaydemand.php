@@ -27,8 +27,14 @@ class Controller_Electric_oneDayDemand extends Controller {
     public function action_index() {
         //一日分のデータを取得
         $oneday = Model_Electric::onedaydata();
+        
         //天気予報情報を取得
-        $oneday['weather_info'] = Model_Electric::getWeatherInfo();
+        $onedaydate = Input::post('onedaydate');
+        $twodaydate = Input::post('twodaydate');
+        $second_graph_flag = Input::post('second_graph_flag');
+        
+        $oneday['weather_info'] = Model_Electric::getWeatherInfo($onedaydate,$twodaydate,$second_graph_flag);
+        
         //テーマのインスタンス化
         $theme = \Theme::forge();
         //テーマにテンプレートのセット

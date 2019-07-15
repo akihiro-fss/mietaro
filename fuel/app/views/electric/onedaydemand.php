@@ -146,7 +146,7 @@
         var param1 = $('#form_onedaydate').val();
         var param2 = $('#form_twodaydate').val();
         var param3 = checked_flg;
-        var data={'param_date_1':param1,'param_date_2':param2,'second_graph_flag':param3};
+        var data={'onedaydate':param1,'twodaydate':param2,'second_graph_flag':param3};
         postForm('oneday',data);
     });
 

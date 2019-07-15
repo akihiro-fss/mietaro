@@ -150,12 +150,12 @@
         postForm('onedaydemand',data);
     });
 
+    google.charts.load('current', {'packages': ['corechart']});
     if (checked_flg) {
         //チェックフラグのデフォルト設定
         $('input[name="second_graph_flag"]').prop('checked', true);
         //チャート表示処理
         var chartdata = convertArray(oneday, yesterday, targetDate1, targetDate2, checked_flg);
-        google.charts.load('current', {'packages': ['corechart']});
         google.setOnLoadCallback(drawChart);
         function drawChart() {
             var data = new google.visualization.arrayToDataTable(chartdata);
@@ -167,6 +167,7 @@
                 "width": 900,
                 "height": 600,
                 seriesType: 'line',
+                colors:['blue','red'],
                 series: {1: {type: 'bars'}}
             };
             var chart = new google.visualization.ComboChart(document.getElementById('chart'));
@@ -174,7 +175,6 @@
         }
     } else {
         var chartdata = convertArray(oneday, yesterday, targetDate1, targetDate2, checked_flg);
-        google.charts.load('current', {'packages': ['corechart']});
         google.setOnLoadCallback(drawChart);
         function drawChart() {
             var data = new google.visualization.arrayToDataTable(chartdata);
@@ -185,6 +185,7 @@
                 "hAxis": {title: 'hour'},
                 "width": 900,
                 "height": 600,
+                colors:['red','blue'],
             };
             var chart = new google.visualization.ColumnChart(document.getElementById('chart'));
             chart.draw(data, options);
@@ -359,6 +360,7 @@
 	                "hAxis": {title: '時'},
 	                "width": 900,
 	                "height": 600,
+                    colors:['red','blue'],
 	                seriesType: 'line'
 	            };
 	            var chart_temperture = new google.visualization.LineChart(document.getElementById('temperture_chart'));

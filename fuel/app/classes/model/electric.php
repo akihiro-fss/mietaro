@@ -142,7 +142,7 @@ class Model_Electric extends \orm\Model {
             'total' => 0
         );
 
-        if(!is_null($secondGraphFlg)){
+        if($secondGraphFlg){
             $tmp_result = self::calcOnedayData($str_id,$twoday_st);
             $result_twoday = array(
                 'result' => $tmp_result['result'],
@@ -1332,7 +1332,7 @@ class Model_Electric extends \orm\Model {
     	 	}
     	 }
 
-        if($second_graph_flag != null){
+        if($second_graph_flag != null && $second_graph_flag == '1'){
             $weatherInfoGraphData = self::getTemperatureGraphData(
                 $onedaydate == null ? date('Y-m-d',time()) : $onedaydate, 
                 $twodaydate == null ? date('Y-m-d',time()) : $twodaydate

@@ -29,8 +29,8 @@ class Controller_Electric_oneDayDemand extends Controller {
         $oneday = Model_Electric::onedaydata();
         
         //天気予報情報を取得
-        $onedaydate = Input::post('onedaydate');
-        $twodaydate = Input::post('twodaydate');
+        $onedaydate = Input::post('param_date_1');
+        $twodaydate = Input::post('param_date_2');
         $second_graph_flag = Input::post('second_graph_flag');
         
         $oneday['weather_info'] = Model_Electric::getWeatherInfo($onedaydate,$twodaydate,$second_graph_flag);

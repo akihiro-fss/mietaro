@@ -92,7 +92,7 @@
     <textarea id="comment" class="form-control" rows="5" style="width:800px;"></textarea><br/>
     <input id="comment_button" class="btn btn-primary" type="submit" value="記録">
 </div>
-
+<?php echo Html::anchor('https://darksky.net/poweredby/', 'Powered by Dark Sky'); ?>
 <script>
     var onedayData = <?php echo json_encode($onedayData); ?>;
     var oneday = onedayData['oneday'];

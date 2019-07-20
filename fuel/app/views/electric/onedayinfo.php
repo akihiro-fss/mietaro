@@ -60,7 +60,7 @@
         <tr><td>0:00~</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
     </table>
 <?php echo Form::close(); ?>
-
+<?php echo Html::anchor('https://darksky.net/poweredby/', 'Powered by Dark Sky'); ?>
 <script>
     var electricData = <?php echo json_encode($electricData); ?>
 

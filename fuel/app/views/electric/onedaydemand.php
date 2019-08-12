@@ -91,7 +91,7 @@
     <textarea id="comment" class="form-control" rows="5" style="width:800px;"></textarea></br>
     <input id="comment_button" class="btn btn-primary" type="submit" value="記録">
 </div>
-
+<?php echo Html::anchor('https://darksky.net/poweredby/', 'Powered by Dark Sky'); ?>
 <script>
     var onedayData = <?php echo json_encode($onedayData); ?>;
     var oneday = onedayData['oneday'];
@@ -127,9 +127,11 @@
     $('#total_price_1').append(price1);
     $('#total_price_2').append(price2);
 
-
     $('#form_onedaydate').val(targetDate1);
     $('#form_twodaydate').val(targetDate2);
+
+    //気温グラフはデフォルトでは非表示
+    $('#temperture_chart').hide();
 
   //詳細ページに遷移
     $('#onedayinfo').click(function () {
@@ -144,7 +146,7 @@
         var param1 = $('#form_onedaydate').val();
         var param2 = $('#form_twodaydate').val();
         var param3 = checked_flg;
-        var data={'param_date_1':param1,'param_date_2':param2,'second_graph_flag':param3};
+        var data={'onedaydate':param1,'twodaydate':param2,'second_graph_flag':param3};
         postForm('oneday',data);
     });
 
@@ -171,6 +173,7 @@
                 },
                 "width": 800,
                 "height": 500,
+                "colors":['blue','red'],
                 seriesType: 'line',
                 series: {1: {type: 'bars'}}
             };
@@ -196,6 +199,7 @@
                 },
                 "width": 800,
                 "height": 500,
+                "colors":['red'],
             };
             var chart = new google.visualization.ColumnChart(document.getElementById('chart'));
             chart.draw(data, options);
@@ -370,10 +374,10 @@
 	                "hAxis": {title: '時'},
 	                "width": 900,
 	                "height": 600,
-	                seriesType: 'line',
-	                series: {1: {type: 'bars'}}
+                    "colors":['red','blue'],
+	                seriesType: 'line'
 	            };
-	            var chart_temperture = new google.visualization.ComboChart(document.getElementById('temperture_chart'));
+                var chart_temperture = new google.visualization.LineChart(document.getElementById('temperture_chart'));
 	            chart_temperture.draw(data_temperture, options_temperture);
 	        }
     }

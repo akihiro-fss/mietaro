@@ -330,7 +330,7 @@ class Model_ElectricInfo extends \orm\Model {
 
             //レスポンス用配列作成
             $result['onemonth_date'] = array_merge(
-            		$result['onemonth_date'],array($arrayData[0]."($week[$w])"=>array((int)$arrayData[1],$demandKw,$demandAt))
+            		$result['onemonth_date'],array(str_pad($arrayData[0],2,0,STR_PAD_LEFT)."($week[$w])"=>array((int)$arrayData[1],$demandKw,$demandAt))
             );
         }
 

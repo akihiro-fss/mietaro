@@ -39,10 +39,12 @@
             <th>小計(kWh)</th>
             <th>最大デマンド値(kw)</th>
             <th>発生時刻</th>
+            <th>気温(℃)</th>
+            <th>湿度(%)</th>
         </tr>
     </table>
 <?php echo Form::close(); ?>
-
+<?php echo Html::anchor('https://darksky.net/poweredby/', 'Powered by Dark Sky'); ?>
 <script>
     var electricData = <?php echo json_encode($electricData); ?>
 
@@ -55,11 +57,11 @@
     var price1 = electricData.total_emission;
 
     $.each(onemonthData, function (key, value) {
-        $('#electric-data-table').append('<tr><td style="width:50px;">' + key + '</td><td>' + value[0] + '</td><td>' + value[1] + '</td><td>' + value[2] + '</td></tr>');
+        $('#electric-data-table').append('<tr><td style="width:50px;">' + key + '</td><td>' + value[0] + '</td><td>' + value[1] + '</td><td>' + value[2] + '</td><td>' + value['temperature'] + '</td><td>' + value['humidity'] + ' </td></tr>');
     });
 
-    $('#electric-data-table').append('<tr><td style="width:90px;">  合計  </td><td>' + onemonthTotal + '</td><<td> - </td><td> - </td></tr>');
-    $('#electric-data-table').append('<tr><td> CO2排出量 </td><td>' + emission1 + '</td><td> - </td><td> - </td></tr>');
-    $('#electric-data-table').append('<tr><td> 原油換算</td><td>' + price1 + '</td><td> - </td><td> - </td></tr>');
+    $('#electric-data-table').append('<tr><td style="width:90px;">  合計  </td><td>' + onemonthTotal + '</td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
+    $('#electric-data-table').append('<tr><td> CO2排出量 </td><td>' + emission1 + '</td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
+    $('#electric-data-table').append('<tr><td> 原油換算</td><td>' + price1 + '</td><td> - </td><td> - </td><td> - </td><td> - </td></tr>');
 
 </script>

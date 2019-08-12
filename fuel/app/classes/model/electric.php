@@ -142,7 +142,7 @@ class Model_Electric extends \orm\Model {
             'total' => 0
         );
 
-        if(!is_null($secondGraphFlg)){
+        if($secondGraphFlg){
             $tmp_result = self::calcOnedayData($str_id,$twoday_st);
             $result_twoday = array(
                 'result' => $tmp_result['result'],
@@ -1190,7 +1190,7 @@ class Model_Electric extends \orm\Model {
      * @return ArrayObject
      */
     const ONE_HOUR = 3600;
-    public static function getWeatherInfo(){
+    public static function getWeatherInfo($onedaydate=null,$twodaydate=null,$second_graph_flag=null){
     	/* 計算に必要なパラメータを準備 */
     	//Authのインスタンス化
     	$auth = Auth::instance();
@@ -1296,7 +1296,7 @@ class Model_Electric extends \orm\Model {
     	}
 
     	 //darkskyapiで天気情報取得（基準となる配列に気温と降水量を当てはめていく
-    	 $url = 'https://api.darksky.net/forecast/6a209d039050d0ab085064ab9018c09e/'.$latitude.','.$longitude.'?units=si';
+    	 $url = 'https://api.darksky.net/forecast/a10e7c1ad14f74f27a7279006bf326a9/'.$latitude.','.$longitude.'?units=si';
     	 // curlの処理を始める合図(openweathermap)
     	 $curl = curl_init($url);
     	 //リクエストのオプションをセットしていく
@@ -1332,39 +1332,396 @@ class Model_Electric extends \orm\Model {
     	 	}
     	 }
 
-    	 /*darkskyapiで当日の0～24時まで気温を取得(24時は23時の気温を引き継がせる)*/
-    	 $nowdate = date('Y-m-d\T00:00:00',$nowtimestamp);
-    	 $url = 'https://api.darksky.net/forecast/6a209d039050d0ab085064ab9018c09e/'.$latitude.','.$longitude.','.$nowdate.'?units=si';
-    	 // curlの処理を始める合図(openweathermap)
-    	 $curl = curl_init($url);
-    	 //　リクエストのオプションをセットしていく
-    	 curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET'); // メソッド指定
-    	 curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false); // 証明書の検証を行わない
-    	 curl_setopt($curl, CURLOPT_RETURNTRANSFER, true); // レスポンスを文字列で受け取る
-    	 //レスポンスを変数に入れる
-    	 $response = curl_exec($curl);
-    	 // curlの処理を終了
-    	 curl_close($curl);
-    	 //darkskyapiで当日の0～24時までの気温を取得する
-    	 $list =  json_decode($response)->hourly->data;
-    	 $weatherInfoGraphData = array(array("",date('Y-m-d',$nowtimestamp)));
-    	 foreach($list as $data){
-    	 	//日時
-    	 	$timestamp = $data->time;
-    	 	//気温
-    	 	$temperature = $data->temperature;
-    	 	//グラフ用のデータ作成
-    	 	$hour = date('H',$timestamp);
-    	 	$weatherInfoGraphData[] = array($hour,(int)$temperature);
-    	 	//24時としてのデータを補填
-    	 	if($hour==23){
-    	 		$weatherInfoGraphData[] = array("24",(int)$temperature);
-    	 	}
-    	 }
+        if($second_graph_flag != null && $second_graph_flag == '1'){
+            $weatherInfoGraphData = self::getTemperatureGraphData(
+                $onedaydate == null ? date('Y-m-d',time()) : $onedaydate, 
+                $twodaydate == null ? date('Y-m-d',time()) : $twodaydate
+            );
+        }else if($onedaydate != null){
+            $weatherInfoGraphData = self::getTemperatureGraphData(
+                $onedaydate == null ? date('Y-m-d',time()) : $onedaydate
+            );
+        }else{
+            $weatherInfoGraphData = self::getTemperatureGraphData(
+                date('Y-m-d',$nowtimestamp)
+            );
+        }
 
     	 return array(
     	 		'weatherinfotabledata' => $weatherInfoTableData,
     	 		'weatherinfographdata' => $weatherInfoGraphData,
     	 );
+    }
+
+    /**
+     * addInformationForOnedayInfo - 日毎詳細表示用のデータに追加情報（気温・湿度）を追加する
+     * @access datetime メイン表示で指定している日付(Y-m-d)
+     * @access datetime 比較表示で指定している日付(Y-m-d)
+     * @access arrayObject 気温湿度情報が抜けた状態の日毎表示用配列データ
+     * @return arrayObject 新たに「temperture」「humidity」を追加した表示用データ
+     */
+    public static function addInformationForOnedayInfo($onedayDate=null,$twodayDate=null,$onedayinfo=array())
+    {
+        //メイン表示部
+        if(!empty($onedayDate)){
+            $work_array = $onedayinfo['oneday_date'];
+            $wetherinfo = self::getPastWeatherInfo($onedayDate);
+
+            foreach($wetherinfo as $key => $data){
+                if ($key == 0) continue;
+
+                $timestamp = strtotime($data['time']);
+                
+                $hm_current = '~'.date('H:i',$timestamp);
+                $hm_prev = '~' .date('H:i',strtotime('-30 minute',$timestamp));
+
+                $work_current = Arr::get($work_array,$hm_current,null);
+                if(!is_null($work_current)){
+                    $work_array[$hm_current]['temperature'] = $data['temperature'];
+                    $work_array[$hm_current]['humidity'] = $data['humidity'];
+                }
+                $work_prev = Arr::get($work_array,$hm_prev,null);
+                if(!is_null($work_current)){
+                    $work_array[$hm_prev]['temperature'] = $data['temperature'];
+                    $work_array[$hm_prev]['humidity'] = $data['humidity'];
+                }
+            }
+            $tmp_timestamp = strtotime($onedayDate.'00:00:00');
+            $tomorrow_date = date('Y-m-d',strtotime('+1 day',$tmp_timestamp));
+            $com_wetherinfo = self::getPastWeatherInfo($tomorrow_date);
+            $com_data = current($com_wetherinfo);
+
+            $work_array['~23:30']['temperature'] = $work_array['~24:00']['temperature'] = $com_data['temperature'];
+            $work_array['~23:30']['humidity'] = $work_array['~24:00']['humidity'] = $com_data['humidity'];
+            $onedayinfo['oneday_date'] = $work_array;
+        }
+
+        //比較表示部
+        if(!empty($twodayDate)){
+            $work_array = $onedayinfo['twoday_date'];
+            $wetherinfo = self::getPastWeatherInfo($twodayDate);
+            
+            foreach($wetherinfo as $key => $data){
+                if ($key == 0) continue;
+
+                $timestamp = strtotime($data['time']);
+                $hm_current = '~'.date('H:i',$timestamp);
+                $hm_prev = '~' .date('H:i',strtotime('-30 minute',$timestamp));
+
+                $work_current = Arr::get($work_array,$hm_current,null);
+                if(!is_null($work_current)){
+                    $work_array[$hm_current]['temperature'] = $data['temperature'];
+                    $work_array[$hm_current]['humidity'] = $data['humidity'];
+                }
+                $work_prev = Arr::get($work_array,$hm_prev,null);
+                if(!is_null($work_current)){
+                    $work_array[$hm_prev]['temperature'] = $data['temperature'];
+                    $work_array[$hm_prev]['humidity'] = $data['humidity'];
+                }
+            }
+            $tmp_timestamp = strtotime($twodayDate.'00:00:00');
+            $tomorrow_date = date('Y-m-d',strtotime('+1 day',$tmp_timestamp));
+            $com_wetherinfo = self::getPastWeatherInfo($tomorrow_date);
+            $com_data = current($com_wetherinfo);
+            
+            $work_array['~23:30']['temperature'] = $work_array['~24:00']['temperature'] = $com_data['temperature'];
+            $work_array['~23:30']['humidity'] = $work_array['~24:00']['humidity'] = $com_data['humidity'];
+            $onedayinfo['twoday_date'] = $work_array;
+        }
+
+        return $onedayinfo;
+    }
+
+    /**
+     * addInformationForWeekinfo - 週間詳細表示用のデータに追加情報（気温・湿度）を追加する
+     * @access arrayObject 気温湿度情報が抜けた状態の週間表示用配列データ
+     * @return arrayObject 新たに「temperture」「humidity」を追加した表示用データ
+     */
+    public static function addInformationForWeekinfo($oneweekDate,$twoweekDate,$weekinfo)
+    {
+        $work_array = $weekinfo['oneweek_date'];
+        $timestamp = strtotime($oneweekDate);
+        $count = 6;
+        foreach($work_array as $key=>$data){
+            //デマンド発生データなしのため気温湿度取得処理をスキップ
+            $data['temperature'] = '-';
+            $data['humidity'] = '-';
+
+            //指定日付から過去１週間分
+            $target_date = date('Y-m-d',strtotime('-'.$count.' day',$timestamp));
+
+            if(!empty($oneweekDate)){
+                //最大デマンドが記録されてる日時でのみ気象情報取得処理
+                if($data['demand_kw'] > 0){
+                    $search_datetime = date(
+                        'Y-m-d H:00',
+                        strtotime($target_date.' '.$data['electric_at'])
+                    );
+                    $wether_array = self::getPastWeatherInfo($target_date);
+                    foreach($wether_array as $weather){
+                        if($weather['time'] == $search_datetime){
+                            $data['temperature'] = $weather['temperature'];
+                            $data['humidity'] = $weather['humidity'];
+                            break;
+                        }
+                    }
+                }
+            }
+            $work_array[$key] = $data;
+            $count--;
+        }
+        $weekinfo['oneweek_date'] = $work_array;
+        
+        $work_array = $weekinfo['twoweek_date'];
+        $timestamp = strtotime($twoweekDate);
+        $count = 6;
+        foreach($work_array as $key=>$data){
+            $data['temperature'] = '-';
+            $data['humidity'] = '-';
+
+            //指定日付から過去１週間分
+            $target_date = date('Y-m-d',strtotime('-'.$count.' day',$timestamp));
+
+            if(!empty($twoweekDate)){
+                //最大デマンドが記録されてる日時でのみ気象情報取得処理
+                if($data['demand_kw'] > 0){
+                    $search_datetime = date(
+                        'Y-m-d H:00',
+                        strtotime($target_date.' '.$data['electric_at'])
+                    );
+                    $wether_array = self::getPastWeatherInfo($target_date);
+                    foreach($wether_array as $weather){
+                        if($weather['time'] == $search_datetime){
+                            $data['temperature'] = $weather['temperature'];
+                            $data['humidity'] = $weather['humidity'];
+                            break;
+                        }
+                    }
+                }
+            }
+            $work_array[$key] = $data;
+            $count--;
+        }
+        $weekinfo['twoweek_date'] = $work_array;
+
+        return $weekinfo;
+    }
+
+    /**
+     * addInformationForMonthinfo - 月間詳細表示用のデータに追加情報（気温・湿度）を追加する
+     * @access arrayObject 気温湿度情報が抜けた状態の月間表示用配列データ
+     * @return arrayObject 新たに「temperture」「humidity」を追加した表示用データ
+     */
+    public static function addInformationForMonthinfo($onemonthDate,$monthinfo)
+    {
+        $work_array = $monthinfo['onemonth_date'];
+        
+        foreach($work_array as $key => $data){
+            $data['temperature'] = '-';
+            $data['humidity'] = '-';
+                
+            if(!empty($onemonthDate)){
+                $base_target = date('Y-m',strtotime($onemonthDate));
+                $target_date = $base_target.'-'.substr($key,0,2);
+
+                if($data[1] > 0){
+                    $search_datetime = date(
+                        'Y-m-d H:00',
+                        strtotime($target_date.' '.$data[2])
+                    );
+    
+                    $wether_array = self::getPastWeatherInfo($target_date);
+                    foreach($wether_array as $weather){
+                        if($weather['time'] == $search_datetime){
+                            $data['temperature'] = $weather['temperature'];
+                            $data['humidity'] = $weather['humidity'];
+                            break;
+                        }
+                    }
+                }
+                $work_array[$key] = $data;
+            }
+        }
+        $monthinfo['onemonth_date'] = $work_array;
+
+        return $monthinfo;
+    }
+
+    /**
+     * addInformationForYearinfo - 年間詳細表示用のデータに追加情報（気温・湿度）を追加する
+     * @access arrayObject 気温湿度情報が抜けた状態の年間表示用配列データ
+     * @return arrayObject 新たに「temperture」「humidity」を追加した表示用データ
+     */
+    public static function addInformationForYearinfo($oneyearDate, $twoyearDate,$yearinfo)
+    {
+        $work_array = $yearinfo['oneyear_electric'];
+        foreach($work_array as $key => $data){
+            //デマンド発生データなしのため気温湿度取得処理をスキップ
+            $data['temperature'] = '-';
+            $data['humidity'] = '-';
+
+            if(!empty($oneyearDate)){
+                $year = date('Y',strtotime($oneyearDate));
+                $month = substr($key,0,2);
+                $day = substr($data[2],0,2);
+                $time = substr($data[2],5);
+                $target_date = $year.'-'.$month.'-'.$day;
+                if($data[1] > 0){
+                    $search_datetime = date(
+                        'Y-m-d H:00',
+                        strtotime($target_date.' '.$time)
+                    );
+                    $wether_array = self::getPastWeatherInfo($target_date);
+                    foreach($wether_array as $weather){
+                        if($weather['time'] == $search_datetime){
+                            $data['temperature'] = $weather['temperature'];
+                            $data['humidity'] = $weather['humidity'];
+                            break;
+                        }
+                    }
+                }
+            }
+            $work_array[$key] = $data;
+        }
+        $yearinfo['oneyear_electric'] = $work_array;
+
+        $work_array = $yearinfo['twoyear_electric'];
+        foreach($work_array as $key => $data){
+            //デマンド発生データなしのため気温湿度取得処理をスキップ
+            $data['temperature'] = '-';
+            $data['humidity'] = '-';
+
+            if(!empty($twoyearDate)){
+                $year = date('Y',strtotime($twoyearDate));
+                $month = substr($key,0,2);
+                $day = substr($data[2],0,2);
+                $time = substr($data[2],5);
+                $target_date = $year.'-'.$month.'-'.$day;
+                if($data[1] > 0){
+                    $search_datetime = date(
+                        'Y-m-d H:00',
+                        strtotime($target_date.' '.$time)
+                    );
+                    $wether_array = self::getPastWeatherInfo($target_date);
+                    foreach($wether_array as $weather){
+                        if($weather['time'] == $search_datetime){
+                            $data['temperature'] = $weather['temperature'];
+                            $data['humidity'] = $weather['humidity'];
+                            break;
+                        }
+                    }
+                }
+            }
+            $work_array[$key] = $data;
+        }
+        $yearinfo['twoyear_electric'] = $work_array;
+
+        return $yearinfo;
+    }
+
+
+
+    
+    /**
+     * 指定日付の0〜24時までの気温・湿度情報を取得
+     * @access datetime 'YYYY-mm-dd 00:00:00'
+     */
+    private static function getPastWeatherInfo($datetime = null)
+    {
+        //Authのインスタンス化
+        $auth = Auth::instance();
+        $str_id = $auth->get_str_id();
+        $strData = self::selectBasicInfoForStrId($str_id);
+        //緯度経度取得
+        $latitude = $strData['latitude'];
+        $longitude = $strData['longitude'];
+        
+        //指定日付のタイムスタンプ
+        $timestamp = strtotime($datetime);
+        $check = date('Y-m-d H:i',$timestamp);
+        
+        $api = new Model_Api_Weather();
+
+        $response = $api->getWeather($latitude,$longitude,$timestamp);
+
+        $list =  json_decode($response)->hourly->data;
+
+        $result = array();
+
+        //時間・気温・湿度のみを抽出
+
+        for($i=0;$i<24;$i++){
+            $tmp_time = date("Y-m-d H:i",strtotime($check . "+$i hour"));
+            foreach($list as $key=>$data){
+                $time = date('Y-m-d H:i',$data->time);
+                $temperature = '-';
+                $humidity = '-';
+                if($tmp_time == $time){
+                    $temperature = $data->temperature;
+                    $humidity = $data->humidity * 100;
+                    break;
+                }
+            }
+            $result[] = array(
+                'time' => $tmp_time,
+                'temperature' => $temperature,
+                'humidity' => $humidity
+            );
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * グラフ用気温データ作成
+     */
+    private static function getTemperatureGraphData($target_date_1=null,$target_date_2=null){
+
+        if($target_date_1 != null && $target_date_2 != null){
+            //比較日付指定時の気温グラフ作成
+            $target1 = date('Y-m-d\T00:00:00',strtotime($target_date_1));
+            $target_timestsmp_1 = strtotime($target1);
+            
+            $target2 = date('Y-m-d\T00:00:00',strtotime($target_date_2));
+            $target_timestsmp_2 = strtotime($target2);
+            
+            $list1 = self::getPastWeatherInfo($target1);
+            $list2 = self::getPastWeatherInfo($target2);
+
+            $weatherInfoGraphData = array(array("",date('Y-m-d',strtotime($target1)),date('Y-m-d',strtotime($target2))));
+            
+    	    foreach($list1 as $key => $data){
+                $time = date('H',strtotime($data['time']));
+                $temp1 = $data['temperature'] == '-' ? null : $data['temperature'];
+                $temp2 = $list2[$key]['temperature'] == '-' ? null : $list2[$key]['temperature'];
+                $weatherInfoGraphData[] = array("$time",$temp1,$temp2);
+            }
+            $tomorrow1 = date('Y-m-d',strtotime('+1 day',$target_timestsmp_1));
+            $tomorrow2 = date('Y-m-d',strtotime('+1 day',$target_timestsmp_2));
+            $list1 = self::getPastWeatherInfo($tomorrow1);
+            $list2 = self::getPastWeatherInfo($tomorrow2);
+            $weatherInfoGraphData[] = array("24",$list1[0]['temperature'],$list2[0]['temperature']);
+        }else{
+            //メイン日付のみ指定時の気温グラフ作成
+            if($target_date_1 == null){
+                $target1 = date('Y-m-d\T00:00:00',time());
+                $target_timestsmp = time();
+            }else{
+                $target1 = date('Y-m-d\T00:00:00',strtotime($target_date_1));
+                $target_timestsmp = strtotime($target1);
+            }
+            $list = self::getPastWeatherInfo($target1);
+    	    $weatherInfoGraphData = array(array("",date('Y-m-d',strtotime($target1))));
+    	    foreach($list as $data){
+                $time = date('H',strtotime($data['time']));
+                $temp = $data['temperature'] == '-' ? null : $data['temperature'];
+                $weatherInfoGraphData[] = array("$time",$temp);
+            }
+            $tomorrow = date('Y-m-d',strtotime('+1 day',$target_timestsmp));
+            $list = self::getPastWeatherInfo($tomorrow);
+            $weatherInfoGraphData[] = array("24",$list[0]['temperature']);
+        }
+        return $weatherInfoGraphData;
     }
 }

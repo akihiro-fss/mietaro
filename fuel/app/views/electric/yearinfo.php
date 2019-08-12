@@ -28,12 +28,12 @@
 <?php echo Form::open(array('name' => 'yearinfo', 'method' => 'post', 'class' => 'form-horizontal')); ?>
     <table id="electric-data-table" class="table table-bordered">
         <tr>
-            <th style="text-align:center;" colspan="4">
+            <th style="text-align:center;" colspan="6">
                 メイン詳細<br/>
                 <input type="date" name="param_date_1" value="param_date_1" id="form_param_date_1" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
             </th>
-            <th style="text-align:center;" colspan="3">
+            <th style="text-align:center;" colspan="6">
                 比較対象詳細<br/>
                 <input type="date" name="param_date_2" value="param_date_2" id="form_param_date_2" style="width:150px; height:20px">
                 <input class="btn btn-primary" name="submit" value="表示" type="submit" id="form_submit">
@@ -45,15 +45,19 @@
             <th>小計(kWh)</th>
             <th>最大デマンド値(kW)</th>
             <th>発生時刻</th>
+            <th>気温(℃)</th>
+            <th>湿度(%)</th>
             <th>小計(kWh)</th>
             <th>最大デマンド値(kW)</th>
             <th>発生時刻</th>
+            <th>気温(℃)</th>
+            <th>湿度(%)</th>
             <th>使用電力量(kwh)</th>
             <th>比率(％)</th>
         </tr>
     </table>
 <?php echo Form::close(); ?>
-
+<?php echo Html::anchor('https://darksky.net/poweredby/', 'Powered by Dark Sky'); ?>
 
 <script>
     var electricData = <?php echo json_encode($electricData); ?>
@@ -83,12 +87,21 @@
         var demand1 = value[1];
         //メイン詳細-発生日時
         var triggerdate1 = value[2];
-        //メイン詳細-使用電力量
+        //メイン詳細-気温
+        var temperature1 = value['temperature'];
+        //メイン詳細-湿度
+        var humidity1 = value['humidity'];
+        //比較詳細-使用電力量
         var electric2 = twoyearElectric[key][0];
-        //メイン詳細-デマンド
+        //比較詳細-デマンド
         var demand2 = twoyearElectric[key][1];
-        //メイン詳細-発生日時
+        //比較詳細-発生日時
         var triggerdate2 = twoyearElectric[key][2];
+        //比較詳細-気温
+        var temperature2 = twoyearElectric[key]['temperature'];
+        //比較詳細-湿度
+        var humidity2 = twoyearElectric[key]['humidity'];
+
         //比較表-使用電力量
         var diffElectric = parseInt(electric2) - parseInt(electric1);
         var diffElectricStr = diffElectric;
@@ -107,7 +120,7 @@
         }else{
         	var diffPercentStr = '%';
         }
-        $('#electric-data-table').append('<tr><td style="width:50px;">' + time + '</td><td>' + electric1 + '</td><td>' + demand1 + '</td><td>' + triggerdate1 + '</td><td>' + electric2 + '</td><td>' + demand2 + '</td><td>' + triggerdate2 + '</td><td>' + diffElectricStr + '</td><td>' + diffPercentStr + '</td></tr>');
+        $('#electric-data-table').append('<tr><td style="width:50px;">' + time + '</td><td>' + electric1 + '</td><td>' + demand1 + '</td><td>' + triggerdate1 + '</td><td>'+temperature1+'</td><td>'+humidity1+'</td><td>' + electric2 + '</td><td>' + demand2 + '</td><td>' + triggerdate2 + '</td><td>'+temperature2+'</td><td>'+humidity2+'</td><td>' + diffElectricStr + '</td><td>' + diffPercentStr + '</td></tr>');
     });
     //比較表-合計-使用電力量
     var diffTotalElectric = parseInt(oneyearTotal) - parseInt(twoyearTotal);
@@ -128,8 +141,8 @@
     	var diffTotalPercentStr = '%';
     }
 
-    $('#electric-data-table').append('<tr><td style="width:50px;">  合計  </td><td>' + oneyearTotal + '</td><td> - </td><td>  </td><td>' + twoyearTotal + '</td><td> - </td><td>  </td><td>' + diffTotalElectricStr + '</td><td>' + diffTotalPercentStr +  '</td></tr>');
-    $('#electric-data-table').append('<tr><td style="width:50px;"> CO2排出量 </td><td colspan="3">' + emission1 + '<td colspan="3">' + emission2 + '</td><td colspan="2">-</td></tr>');
-    $('#electric-data-table').append('<tr><td style="width:50px;"> 原油換算</td><td colspan="3">' + price1 + '<td colspan="3">' + price2 + '</td><td colspan="2">-</td></tr>');
+    $('#electric-data-table').append('<tr><td style="width:50px;">  合計  </td><td>' + oneyearTotal + '</td><td> - </td><td> - </td><td> - </td><td> - </td><td>' + twoyearTotal + '</td><td> - </td><td> - </td><td> - </td><td> - </td><td>' + diffTotalElectricStr + '</td><td>' + diffTotalPercentStr +  '</td></tr>');
+    $('#electric-data-table').append('<tr><td style="width:50px;"> CO2排出量 </td><td colspan="5">' + emission1 + '<td colspan="5">' + emission2 + '</td><td colspan="2">-</td></tr>');
+    $('#electric-data-table').append('<tr><td style="width:50px;"> 原油換算</td><td colspan="5">' + price1 + '<td colspan="5">' + price2 + '</td><td colspan="2">-</td></tr>');
 
 </script>

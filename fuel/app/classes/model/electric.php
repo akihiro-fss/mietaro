@@ -65,6 +65,9 @@ class Model_Electric extends \orm\Model {
      * 平均値計算用SELECTメソッド
      */
     private static function selectElectricDataOneRecode($str_id, $start, $end) {
+        //条件に-30分補正
+        $start = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($start)));
+        $end = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($end)));
         $sql = "SELECT electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
         return \DB::query($sql)->execute()->as_array();
     }
@@ -72,6 +75,9 @@ class Model_Electric extends \orm\Model {
      * 平均値計算用(demand_kw用)SELECTメソッド
      */
     private static function selectDemandData($str_id, $start, $end) {
+        //条件に-30分補正
+        $start = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($start)));
+        $end = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($end)));
         $sql = "SELECT MAX(demand_kw) as 'demand_kw' FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
         return \DB::query($sql)->execute()->current();
     }
@@ -340,9 +346,8 @@ class Model_Electric extends \orm\Model {
             //前月グラフデータ表示無効
             $checkedFlg = 0;
         }
+
         $result = Model_Electric::convertDataForMonth($result_a_month,$result_a_month_ago,$month_st,$month_end,$month_ago_st,$month_ago_end,$checkedFlg);
-
-
 
         return array(
         	'result' => $result['result'],
@@ -419,6 +424,7 @@ class Model_Electric extends \orm\Model {
         }else{
             $checkedFlg = 0;
         }
+
         $result = self::convertDataForYear($result_one_years,$result_two_years,$oneYearsdate_st,$twoYearsdate_st,$checkedFlg);
 
         return array(
@@ -474,6 +480,7 @@ class Model_Electric extends \orm\Model {
             $end = date("Y-m-d H:i:s",strtotime($start . "+29 minute +59 seconds"));
             //平均値取得
             $result = Model_Electric::selectElectricDataOneRecode($str_id, $start, $end);
+            print_r($result);
             $electricKw = 0;
             foreach ($result as $calcData){
             	$electricKw += $calcData['electric_kw'];

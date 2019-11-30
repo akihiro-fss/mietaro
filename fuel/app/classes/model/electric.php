@@ -480,7 +480,6 @@ class Model_Electric extends \orm\Model {
             $end = date("Y-m-d H:i:s",strtotime($start . "+29 minute +59 seconds"));
             //平均値取得
             $result = Model_Electric::selectElectricDataOneRecode($str_id, $start, $end);
-            print_r($result);
             $electricKw = 0;
             foreach ($result as $calcData){
             	$electricKw += $calcData['electric_kw'];

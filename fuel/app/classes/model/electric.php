@@ -40,7 +40,11 @@ class Model_Electric extends \orm\Model {
      * DBデータ取得
      */
     private static function DbData($str_id, $start, $end) {
-        $sql = "SELECT electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
+        //条件に-30分補正
+        $start = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($start)));
+        $end = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($end)));
+        //出力結果に+30分補正
+        $sql = "SELECT electric_at + INTERVAL 30 MINUTE AS electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
         $query = \DB::query($sql)->execute();
         return $query;
     }
@@ -49,7 +53,11 @@ class Model_Electric extends \orm\Model {
      * SELECT用メソッド
      */
     private static function selectElectricData($str_id, $start, $end) {
-        $sql = "SELECT electric_at, str_id, electric_kw, demand_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
+        //条件に-30分補正
+        $start = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($start)));
+        $end = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($end)));
+        //出力結果に+30分補正
+        $sql = "SELECT electric_at + INTERVAL 30 MINUTE AS electric_at, str_id, electric_kw, demand_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
         return \DB::query($sql)->execute()->as_array();
     }
 
@@ -57,6 +65,9 @@ class Model_Electric extends \orm\Model {
      * 平均値計算用SELECTメソッド
      */
     private static function selectElectricDataOneRecode($str_id, $start, $end) {
+        //条件に-30分補正
+        $start = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($start)));
+        $end = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($end)));
         $sql = "SELECT electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
         return \DB::query($sql)->execute()->as_array();
     }
@@ -64,6 +75,9 @@ class Model_Electric extends \orm\Model {
      * 平均値計算用(demand_kw用)SELECTメソッド
      */
     private static function selectDemandData($str_id, $start, $end) {
+        //条件に-30分補正
+        $start = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($start)));
+        $end = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($end)));
         $sql = "SELECT MAX(demand_kw) as 'demand_kw' FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
         return \DB::query($sql)->execute()->current();
     }
@@ -72,7 +86,11 @@ class Model_Electric extends \orm\Model {
      * 月間データ用SELECT
      */
     private static function selectElectricDataForMonth($str_id, $start, $end) {
-        $sql = "SELECT electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id AND electric_at >= '$start' AND electric_at < '$end'";
+        //条件に-30分補正
+        $start = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($start)));
+        $end = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($end)));
+        //出力結果に+30分補正
+        $sql = "SELECT electric_at + INTERVAL 30 MINUTE AS electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id AND electric_at >= '$start' AND electric_at < '$end'";
         return \DB::query($sql)->execute()->as_array();
     }
 
@@ -328,9 +346,8 @@ class Model_Electric extends \orm\Model {
             //前月グラフデータ表示無効
             $checkedFlg = 0;
         }
+
         $result = Model_Electric::convertDataForMonth($result_a_month,$result_a_month_ago,$month_st,$month_end,$month_ago_st,$month_ago_end,$checkedFlg);
-
-
 
         return array(
         	'result' => $result['result'],
@@ -399,6 +416,7 @@ class Model_Electric extends \orm\Model {
         $conversionFactor = (float)$strData['conversion_factor'];
 
         $result_one_years = Model_Electric::selectElectricData($str_id, $oneYearsdate_st, $oneYearsdate_end);
+
         $result_two_years=array();
         if($secondGraphFlg){
             $result_two_years = Model_Electric::selectElectricData($str_id, $twoYearsdate_st, $twoYearsdate_end);
@@ -406,6 +424,7 @@ class Model_Electric extends \orm\Model {
         }else{
             $checkedFlg = 0;
         }
+
         $result = self::convertDataForYear($result_one_years,$result_two_years,$oneYearsdate_st,$twoYearsdate_st,$checkedFlg);
 
         return array(
@@ -1221,8 +1240,8 @@ class Model_Electric extends \orm\Model {
     	//curlの処理を終了
     	curl_close($curl);
     	//表示に必要な要素だけ抽出（リスト先頭から4つ）
-    	$list =  json_decode($response)->list;
-    	$owinfotmp = array();
+        $list =  json_decode($response)->list;
+        $owinfotmp = array();
     	$count = 0;
     	foreach($list as $data ){
     		$conarray = (array)$data;

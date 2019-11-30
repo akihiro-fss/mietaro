@@ -43,7 +43,11 @@ class Model_analysis extends \orm\Model
     //　分析用グラフのデータ作成
     public static function analysisdata($str_id, $starttime, $endtime)
     {
-        $sql = "SELECT electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$starttime' AND '$endtime'";
+        //条件に-30分補正
+        $starttime = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($starttime)));
+        $endtime = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($endtime)));
+        //出力結果に+30分補正
+        $sql = "SELECT electric_at + INTERVAL 30 MINUTE AS electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$starttime' AND '$endtime'";
         $query = \DB::query($sql)->execute();
         $data = Model_analysis::calclation($query);
         return $data;
@@ -68,7 +72,11 @@ class Model_analysis extends \orm\Model
     // 分析の詳細データで使用するデマンド値の取得
     public static function demand_analysis($str_id, $starttime, $endtime)
     {
-        $sql = "SELECT electric_at, str_id, demand_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$starttime' AND '$endtime'";
+        //条件に-30分補正
+        $starttime = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($starttime)));
+        $endtime = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($endtime)));
+        //出力結果に+30分補正
+        $sql = "SELECT electric_at + INTERVAL 30 MINUTE AS electric_at, str_id, demand_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$starttime' AND '$endtime'";
         $query = \DB::query($sql)->execute();
         $data = Model_analysis::demandcalc($query);
         // Debug::dump($query);
@@ -77,7 +85,11 @@ class Model_analysis extends \orm\Model
     // 分析の詳細データで使用する30分の使用電力量を取得
     public static function electric_m($str_id, $starttime, $endtime)
     {
-        $sql = "SELECT electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$starttime' AND '$endtime'";
+        //条件に-30分補正
+        $starttime = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($starttime)));
+        $endtime = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($endtime)));
+        //出力結果に+30分補正
+        $sql = "SELECT electric_at + INTERVAL 30 MINUTE AS electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$starttime' AND '$endtime'";
         $query = \DB::query($sql)->execute();
         $data = Model_analysis::electriccalc($query);
         // Debug::dump($query);
@@ -137,10 +149,16 @@ class Model_analysis extends \orm\Model
         $auth = Auth::instance();
         $str_id = $auth->get_str_id();
         $today = new DateTime();
-        $month = $today->modify('-1 month')->format('Y-m-d');
-        //Debug::dump($month);
-        $sql = "SELECT demand_kw From Electric WHERE str_id = $str_id and electric_at = $month ORDER BY electric_at DESC LIMIT 1";
+        $month_start = $today->modify('-1 month')->format('Y-m-01 00:00:00');
+        $month_end = $today->format('Y-m-01 00:00:00');
+        //条件に-30分補正        
+        $starttime = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($month_start)));
+        $endtime = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($month_end)));
+        // Debug::dump($month);
+        $sql = "SELECT demand_kw From Electric WHERE str_id = $str_id and electric_at BETWEEN '$starttime' AND '$endtime' ORDER BY demand_kw LIMIT 1";
         $query = \DB::query($sql)->execute()->current();
+
+        // Debug::dump(Db::last_query());
         $data =$query;
         return $data;
     }
@@ -148,7 +166,11 @@ class Model_analysis extends \orm\Model
     // 分析用詳細表の合計の使用電力量を取得
     public static function getTotalElectric($str_id, $starttime, $endtime)
     {
-        $sql = "SELECT electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$starttime' AND '$endtime'";
+        //条件に-30分補正        
+        $starttime = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($starttime)));
+        $endtime = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($endtime)));
+        //出力結果に+30分補正
+        $sql = "SELECT electric_at + INTERVAL 30 MINUTE, str_id, electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$starttime' AND '$endtime'";
         $query = \DB::query($sql)->execute();
         $total_electric = Model_analysis::calTotalElectric($query);
         return $total_electric;

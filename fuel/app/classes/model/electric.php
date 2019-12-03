@@ -41,10 +41,10 @@ class Model_Electric extends \orm\Model {
      */
     private static function DbData($str_id, $start, $end) {
         //条件に-30分補正
-        $start = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($start)));
-        $end = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($end)));
+        $start = date('Y-m-d H:i:s',strtotime("+30 minutes",strtotime($start)));
+        $end = date('Y-m-d H:i:s',strtotime("+30 minutes",strtotime($end)));
         //出力結果に+30分補正
-        $sql = "SELECT electric_at + INTERVAL 30 MINUTE AS electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
+        $sql = "SELECT electric_at - INTERVAL 30 MINUTE AS electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
         $query = \DB::query($sql)->execute();
         return $query;
     }
@@ -54,30 +54,20 @@ class Model_Electric extends \orm\Model {
      */
     private static function selectElectricData($str_id, $start, $end) {
         //条件に-30分補正
-        $start = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($start)));
-        $end = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($end)));
+        $start = date('Y-m-d H:i:s',strtotime("+30 minutes",strtotime($start)));
+        $end = date('Y-m-d H:i:s',strtotime("+30 minutes",strtotime($end)));
         //出力結果に+30分補正
-        $sql = "SELECT electric_at + INTERVAL 30 MINUTE AS electric_at, str_id, electric_kw, demand_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
+        $sql = "SELECT electric_at - INTERVAL 30 MINUTE AS electric_at, str_id, electric_kw, demand_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
         return \DB::query($sql)->execute()->as_array();
     }
-
-    /**
-     * 平均値計算用SELECTメソッド
-     */
-    private static function selectElectricDataOneRecode($str_id, $start, $end) {
-        //条件に-30分補正
-        $start = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($start)));
-        $end = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($end)));
-        $sql = "SELECT electric_kw FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
-        return \DB::query($sql)->execute()->as_array();
-    }
+    
     /**
      * 平均値計算用(demand_kw用)SELECTメソッド
      */
     private static function selectDemandData($str_id, $start, $end) {
         //条件に-30分補正
-        $start = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($start)));
-        $end = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($end)));
+        $start = date('Y-m-d H:i:s',strtotime("+30 minutes",strtotime($start)));
+        $end = date('Y-m-d H:i:s',strtotime("+30 minutes",strtotime($end)));
         $sql = "SELECT MAX(demand_kw) as 'demand_kw' FROM Electric WHERE str_id = $str_id and electric_at BETWEEN '$start' AND '$end'";
         return \DB::query($sql)->execute()->current();
     }
@@ -87,10 +77,10 @@ class Model_Electric extends \orm\Model {
      */
     private static function selectElectricDataForMonth($str_id, $start, $end) {
         //条件に-30分補正
-        $start = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($start)));
-        $end = date('Y-m-d H:i:s',strtotime("-30 minutes",strtotime($end)));
+        $start = date('Y-m-d H:i:s',strtotime("+30 minutes",strtotime($start)));
+        $end = date('Y-m-d H:i:s',strtotime("+30 minutes",strtotime($end)));
         //出力結果に+30分補正
-        $sql = "SELECT electric_at + INTERVAL 30 MINUTE AS electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id AND electric_at >= '$start' AND electric_at < '$end'";
+        $sql = "SELECT electric_at - INTERVAL 30 MINUTE AS electric_at, str_id, electric_kw FROM Electric WHERE str_id = $str_id AND electric_at >= '$start' AND electric_at < '$end'";
         return \DB::query($sql)->execute()->as_array();
     }
 
@@ -463,6 +453,8 @@ class Model_Electric extends \orm\Model {
      */
     public static function calcOnedayData($str_id,$datetime){
         $start = $datetime;
+        $end = date("Y-m-d H:i:s",strtotime($start . "+23 hour +59 minute +59 seconds"));
+        $result = Model_Electric::selectElectricData($str_id,$start,$end); 
         //配列のキーとなる値の初期化
         $key = 0.5;
         $count = 1;
@@ -475,34 +467,33 @@ class Model_Electric extends \orm\Model {
         );
         //必要情報を取得するまで繰り返す（1日分の電力量データ30分毎の平均値）
         $total = 0;
+        $calc_start = $start;
+        $calc_end = date("Y-m-d H:i:s",strtotime($start . " +30 minute"));
         while(1){
-            //計算範囲から29分59秒足したものを範囲の終わりに設定する
-            $end = date("Y-m-d H:i:s",strtotime($start . "+29 minute +59 seconds"));
-            //平均値取得
-            $result = Model_Electric::selectElectricDataOneRecode($str_id, $start, $end);
-            $electricKw = 0;
-            foreach ($result as $calcData){
-            	$electricKw += $calcData['electric_kw'];
-            }
-            //配列を作成
             $tmp_array = array(
                 0 => ($key * $count).'h',
-            	1 => $electricKw
+                1 => 0
             );
+            foreach($result as $data){
+                if($data['electric_at'] >= $calc_start && $data['electric_at'] <= $calc_end){
+                        //配列を作成
+                        $tmp_array[1] = (int)$data['electric_kw'];
+                }
+            }
             //合計値加算
-            $total += $electricKw;
-            //配列のキーを加算
-            $count++;
+            $total += $tmp_array[1];
             //結果用配列にプッシュ
             array_push($result_array,$tmp_array);
-            //計算範囲をシフト
-            $start = date("Y-m-d H:i:s",strtotime($end . "+1 seconds"));
-            //計算範囲が次の日にシフトしていたら計算終了
-            if(date('Y-m-d',strtotime($start)) != date('Y-m-d',strtotime($datetime))){
+            //1日分のデータ（48個＋グラフ用要素1個）揃ったらループ終了
+            if(count($result_array) > 48){
                 break;
             }
+            //配列のキーを加算
+            $count++;
+            //計算範囲をシフト
+            $calc_start = date("Y-m-d H:i:s",strtotime($calc_start . "+30 minute"));
+            $calc_end = date("Y-m-d H:i:s",strtotime($calc_end . "+30 minute"));
         }
-
         return array(
             'result' => $result_array,
             'total'  => $total
@@ -516,6 +507,8 @@ class Model_Electric extends \orm\Model {
      */
     public static function calcOnedayDemandData($str_id,$datetime){
         $start = $datetime;
+        $end = date("Y-m-d H:i:s",strtotime($start . "+23 hour +59 minute +59 seconds"));
+        $result = Model_Electric::selectElectricData($str_id,$start,$end);
         //配列のキーとなる値の初期化
         $key = 0.5;
         $count = 1;
@@ -523,38 +516,43 @@ class Model_Electric extends \orm\Model {
         $result_array = array(
             array(
                 0=>'',
-                1=>'電力量'
+                1=>'デマンド'
             )
         );
         //必要情報を取得するまで繰り返す（1日分の電力量データ30分毎の平均値）
         $total = 0;
         $max = 0;
+        $calc_start = $start;
+        $calc_end = date("Y-m-d H:i:s",strtotime($start . " +30 minute"));
         while(1){
-            //計算範囲から29分59秒足したものを範囲の終わりに設定する
-            $end = date("Y-m-d H:i:s",strtotime($start . "+29 minute +59 seconds"));
-            //平均値取得
-            $result = Model_Electric::selectDemandData($str_id, $start, $end);
-            //配列を作成
             $tmp_array = array(
                 0 => ($key * $count).'h',
-                1 => (int)$result['demand_kw']
+                1 => 0
             );
+            foreach($result as $data){
+                if($data['electric_at'] >= $calc_start && $data['electric_at'] <= $calc_end){
+                        //配列を作成
+                        $tmp_array[1] = (int)$data['demand_kw'];
+                }
+                //最大値を保持
+                if($max <= (int)$data['demand_kw']){
+                    $max = (int)$data['demand_kw'];
+                }
+            }
             //合計値加算
-            $total += (int)$result['demand_kw'];
-            //最大値を保持
-            if($max <= (int)$result['demand_kw']){
-                $max = (int)$result['demand_kw'];
+            $total += $tmp_array[1];
+            
+            //結果用配列にプッシュ
+            array_push($result_array,$tmp_array);
+            //1日分のデータ（48個＋グラフ用要素1個）揃ったらループ終了
+            if(count($result_array) > 48){
+                break;
             }
             //配列のキーを加算
             $count++;
-            //結果用配列にプッシュ
-            array_push($result_array,$tmp_array);
             //計算範囲をシフト
-            $start = date("Y-m-d H:i:s",strtotime($end . "+1 seconds"));
-            //計算範囲が次の日にシフトしていたら計算終了
-            if(date('Y-m-d',strtotime($start)) != date('Y-m-d',strtotime($datetime))){
-                break;
-            }
+            $calc_start = date("Y-m-d H:i:s",strtotime($calc_start . "+30 minute"));
+            $calc_end = date("Y-m-d H:i:s",strtotime($calc_end . "+30 minute"));
         }
 
         return array(

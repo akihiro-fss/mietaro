@@ -535,8 +535,8 @@ class Model_Electric extends \orm\Model {
                         $tmp_array[1] = (int)$data['demand_kw'];
                 }
                 //最大値を保持
-                if($max <= (int)$result['demand_kw']){
-                    $max = (int)$result['demand_kw'];
+                if($max <= (int)$data['demand_kw']){
+                    $max = (int)$data['demand_kw'];
                 }
             }
             //合計値加算

@@ -120,12 +120,12 @@ class Model_Electric extends \orm\Model {
             }
             $oneday_st = date('Y-m-d 00:00:00', strtotime($onedaydate));
             //$oneday_end = date('Y/m/d 23:59:59', strtotime($onedaydate));
-            $twoday_st = date('Y/m/d 00:00:00', strtotime($twodaydate));
+            $twoday_st = date('Y-m-d 00:00:00', strtotime($twodaydate));
             //$twoday_end = date('Y/m/d 23:59:59', strtotime($twodaydate));
         } else {
-            $oneday_st = date("Y/m/d 00:00:00");
+            $oneday_st = date("Y-m-d 00:00:00");
             //$oneday_end = date("Y/m/d 23:59:59");
-            $twoday_st = date('Y/m/d 00:00:00', strtotime('-1 days'));
+            $twoday_st = date('Y-m-d 00:00:00', strtotime('-1 days'));
             //$twoday_end = date('Y/m/d 23:59:59', strtotime('-1 days'));
         }
         //Authのインスタンス化
@@ -149,6 +149,7 @@ class Model_Electric extends \orm\Model {
             'result' => array(),
             'total' => 0
         );
+
 
         if($secondGraphFlg){
             $tmp_result = self::calcOnedayData($str_id,$twoday_st);

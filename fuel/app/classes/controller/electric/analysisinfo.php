@@ -46,6 +46,12 @@ class Controller_Electric_analysisinfo extends Controller
             $endtime = date('Y-m-d H:00:00', strtotime($today.'+4 hour'));
         }
 
+        if($starttime >= $endtime){
+            $today = date('Y-m-d H:00:00');
+            $starttime = date('Y-m-d H:00:00', strtotime($today.'-4 hour'));
+            $endtime = date('Y-m-d H:00:00', strtotime($today.'+4 hour'));
+        }
+
         //店舗ID取得
         $auth = Auth::instance();
         $strId = $auth->get_str_id();

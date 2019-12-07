@@ -31,7 +31,6 @@ class Controller_Electric_Analysis extends Controller
         //日付の取得
         if (Input::method() == 'POST') {
             $starttime = Input::post('starttime');
-            // Debug::dump($starttime);
             $tday_format = new Datetime($starttime);
             $today = $tday_format->format('Y-m-d H:i:s');
             $endtime = Input::post('endtime');
@@ -46,13 +45,19 @@ class Controller_Electric_Analysis extends Controller
             $endtime = date('Y-m-d H:00:00', strtotime($today.'+4 hour'));
         }
 
+        if($starttime >= $endtime){
+            $today = date('Y-m-d H:00:00');
+            $starttime = date('Y-m-d H:00:00', strtotime($today.'-4 hour'));
+            $endtime = date('Y-m-d H:00:00', strtotime($today.'+4 hour'));
+        }
+
         $auth = Auth::instance();
         $str_id = $auth->get_str_id();
 
         // 開始時間から終了時間までの時間を10分間隔で取得
         $interval = new DateInterval('PT10M');
         $start = new Datetime($starttime);
-        $end = new Datetime($endtime);
+        $end = new Datetime($endtime);  
         $period = new DatePeriod($start, $interval, $end);
 
         // 日付のデータ配列を作成

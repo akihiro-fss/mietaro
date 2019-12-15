@@ -1,0 +1,39 @@
+verison: "3.7"
+services:
+    web:
+        build:
+            context: ./docker/PHP
+            dockerfile: Dockerfile
+        image: centos:7.5.1804
+        container_name: mietaro_web
+        restart: always
+        networks:
+            mietaroNet:
+                ipv4_address: 172.10.0.5
+        volumes: 
+            - ./source:/var/www/html/mietaro
+            - ./docker/log:/var/log
+        stdin_open: true
+        tty: true
+        ports:
+            - "3080:80"
+    db:
+        build:
+            context: ./docker/MySQL
+            dockerfile: Dockerfile
+        image: MySQL:5.7
+        contailner_name: mietaro_db
+        restart: always
+        netwokrs:
+            mietaroNet:
+                ipv4_address: 172.10.0.6
+        ports:
+            - "3306:3306"
+
+networks:
+    mietaroNet:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: 172.10.0.0/24

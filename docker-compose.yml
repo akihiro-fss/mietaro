@@ -1,11 +1,11 @@
-verison: "3.7"
+version: "3.1"
 services:
-    web:
+    mietaro_web:
         build:
             context: ./docker/PHP
             dockerfile: Dockerfile
-        image: centos:7.5.1804
-        container_name: mietaro_web
+        container_name: "mietaro_web"
+        image: "centos:7.5.1804"
         restart: always
         networks:
             mietaroNet:
@@ -16,17 +16,32 @@ services:
         stdin_open: true
         tty: true
         ports:
-            - "3080:80"
-    db:
+            - "30080:80"
+    mietaro_db:
         build:
             context: ./docker/MySQL
             dockerfile: Dockerfile
-        image: MySQL:5.7
-        contailner_name: mietaro_db
+        image: "mysql:5.7"
+        container_name: "mietaro_db"
         restart: always
-        netwokrs:
+
+        environment: 
+            MYSQL_DABASE: mietaro
+            MYSQL_USER: user
+            MYSQL_PASSWORD: ecomira
+            MYSQL_ROOT_PASSWORD: ecomira
+            TZ: Asia/Tokyo
+
+        networks:
             mietaroNet:
                 ipv4_address: 172.10.0.6
+        volumes:
+            # - ./docker/db/mysql/tool:/tool
+            - ./docker/db/mysql/conf.d:/etc/mysql/conf.d
+            # - ./docker/db/mysql/data:/var/lib/mysql
+            - ./docker/db/mysql/log:/var/log/mysql
+            - ./docker/db/mysql/mysql-files:/var/lib/mysql-files
+
         ports:
             - "3306:3306"
 

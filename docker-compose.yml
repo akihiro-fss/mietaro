@@ -1,10 +1,15 @@
-verison: "3.7"
+# ###########################################################
+# 
+# 作成日 2019/12/08     作成者 akihiro.toda
+# 更新日 2020/02/17     更新者 akihiro.toda
+# 
+# Copyright (c) Flugel System Studio - All rights reserved.
+# ###########################################################
+version: "3.7"
 services:
+    # PHP-apache
     web:
-        build:
-            context: ./docker/PHP
-            dockerfile: Dockerfile
-        image: centos:7.5.1804
+        build: ./PHP-apache
         container_name: mietaro_web
         restart: always
         networks:
@@ -12,23 +17,25 @@ services:
                 ipv4_address: 172.10.0.5
         volumes: 
             - ./source:/var/www/html/mietaro
-            - ./docker/log:/var/log
-        stdin_open: true
-        tty: true
+            - ./PHP-apache/log:/var/log
+        # stdin_open: true
+        # tty: true
         ports:
-            - "3080:80"
-    db:
-        build:
-            context: ./docker/MySQL
-            dockerfile: Dockerfile
-        image: MySQL:5.7
-        contailner_name: mietaro_db
-        restart: always
-        netwokrs:
-            mietaroNet:
-                ipv4_address: 172.10.0.6
-        ports:
-            - "3306:3306"
+            - "30080:80"
+
+    # MySQL
+    # db:
+    #     build: ./MySQL
+    #     contailner_name: mietaro_db
+    #     restart: always
+    #     netwokrs:
+    #         mietaroNet:
+    #             ipv4_address: 172.10.0.6
+    #     volimes:
+    #         - ./MySQL/data/:/var/lib/MySQL
+    #         - ./MySQL/sql/:/docker-entrypoint-initdb.d
+    #     ports:
+    #         - "3306:3306"
 
 networks:
     mietaroNet:

@@ -1,17 +1,18 @@
 # ###########################################################
 # 
-# 作成日 2019/12/08
-# 更新日
+# 作成日 2019/12/08     作成者 akihiro.toda
+# 更新日 2020/02/17     更新者 akihiro.toda
 # 
 # Copyright (c) Flugel System Studio - All rights reserved.
 # ###########################################################
+
 
 # ###########################################################
 # 
 # ベースイメージを指定
 # 
 # ###########################################################
-FROM centOS:7.5.1804
+FROM mysql:5.7
 
 
 # ###########################################################
@@ -19,17 +20,6 @@ FROM centOS:7.5.1804
 # イメージ作成者
 # 
 # ###########################################################
-MAINTAINER akihiro.toda
+MAINTAINER  akihiro.toda
 
 
-
-# ########################################################### 
-# 
-# centosパッケージ取得
-# 
-# ###########################################################
-RUN yum -y update && upgrade
-RUN yum -y install epel-release
-RUN yum -y install http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
-RUN yum -y install php71 php71-php
-RUN yum -y install vim

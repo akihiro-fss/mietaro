@@ -23,9 +23,15 @@ FROM php:7.1-apache
 MAINTAINER akihiro.toda
 
 
+
+# ###########################################################
+# 
+# パッケージ
+# 
+# ###########################################################
 RUN apt-get -y update && apt-get -y upgrade
 RUN apt-get -y install vim
 
 RUN docker-php-ext-install pdo_mysql mysqli mbstring
 
-CMD echo "ServerName localhost" >> /etc/apache2/apache2.conf
+# CMD echo "ServerName localhost" >> /etc/apache2/apache2.conf

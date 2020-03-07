@@ -18,24 +18,26 @@ services:
         volumes: 
             - ./source:/var/www/html/mietaro
             - ./PHP-apache/log:/var/log
+        env_file: ./PHP-apache/.env
         # stdin_open: true
         # tty: true
         ports:
             - "30080:80"
 
     # MySQL
-    # db:
-    #     build: ./MySQL
-    #     contailner_name: mietaro_db
-    #     restart: always
-    #     netwokrs:
-    #         mietaroNet:
-    #             ipv4_address: 172.10.0.6
-    #     volimes:
-    #         - ./MySQL/data/:/var/lib/MySQL
-    #         - ./MySQL/sql/:/docker-entrypoint-initdb.d
-    #     ports:
-    #         - "3306:3306"
+    db:
+        build: ./MySQL
+        container_name: mietaro_db
+        restart: always
+        networks: 
+            mietaroNet:
+                ipv4_address: 172.10.0.6
+        volumes:
+            - ./MySQL/data/:/var/lib/MySQL
+            - ./MySQL/sql/:/docker-entrypoint-initdb.d
+        env_file: ./MySQL/.env
+        ports:
+            - "3306:3306"
 
 networks:
     mietaroNet:

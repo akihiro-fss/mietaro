@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-version: "3.1"
-services:
-    mietaro_web:
-        build:
-            context: ./docker/PHP
-            dockerfile: Dockerfile
-        container_name: "mietaro_web"
-        image: "centos:7.5.1804"
-=======
 # ###########################################################
 # 
 # 作成日 2019/12/08     作成者 akihiro.toda
@@ -21,7 +11,6 @@ services:
     web:
         build: ./PHP-apache
         container_name: mietaro_web
->>>>>>> master
         restart: always
         networks:
             mietaroNet:
@@ -29,54 +18,26 @@ services:
         volumes: 
             - ./source:/var/www/html/mietaro
             - ./PHP-apache/log:/var/log
+        env_file: ./PHP-apache/.env
         # stdin_open: true
         # tty: true
         ports:
             - "30080:80"
-<<<<<<< HEAD
-    mietaro_db:
-        build:
-            context: ./docker/MySQL
-            dockerfile: Dockerfile
-        image: "mysql:5.7"
-        container_name: "mietaro_db"
+
+    # MySQL
+    db:
+        build: ./MySQL
+        container_name: mietaro_db
         restart: always
-
-        environment: 
-            MYSQL_DABASE: mietaro
-            MYSQL_USER: user
-            MYSQL_PASSWORD: ecomira
-            MYSQL_ROOT_PASSWORD: ecomira
-            TZ: Asia/Tokyo
-
-        networks:
+        networks: 
             mietaroNet:
                 ipv4_address: 172.10.0.6
         volumes:
-            # - ./docker/db/mysql/tool:/tool
-            - ./docker/db/mysql/conf.d:/etc/mysql/conf.d
-            # - ./docker/db/mysql/data:/var/lib/mysql
-            - ./docker/db/mysql/log:/var/log/mysql
-            - ./docker/db/mysql/mysql-files:/var/lib/mysql-files
-
+            - ./MySQL/data/:/var/lib/MySQL
+            - ./MySQL/sql/:/docker-entrypoint-initdb.d
+        env_file: ./MySQL/.env
         ports:
             - "3306:3306"
-=======
-
-    # MySQL
-    # db:
-    #     build: ./MySQL
-    #     contailner_name: mietaro_db
-    #     restart: always
-    #     netwokrs:
-    #         mietaroNet:
-    #             ipv4_address: 172.10.0.6
-    #     volimes:
-    #         - ./MySQL/data/:/var/lib/MySQL
-    #         - ./MySQL/sql/:/docker-entrypoint-initdb.d
-    #     ports:
-    #         - "3306:3306"
->>>>>>> master
 
 networks:
     mietaroNet:

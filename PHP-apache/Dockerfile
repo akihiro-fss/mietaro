@@ -34,4 +34,16 @@ RUN apt-get -y install vim
 
 RUN docker-php-ext-install pdo_mysql mysqli mbstring
 
-# CMD echo "ServerName localhost" >> /etc/apache2/apache2.conf
+# 日本語設定
+# RUN locale-gen ja_JP.UTF-8
+# ENV LANG ja_JP.UTF-8 
+# ENV LANGUAGE ja_JP:ja
+# ENV LC_ALL ja_JP.UTF-8
+
+# タイムゾーン
+RUN ln -fs /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+
+# localhost設定
+RUN echo "ServerName localhost" | tee /etc/apache2/conf-available/fqdn.conf
+RUN a2enconf fqdn
+RUN a2enmod rewrite

@@ -17,12 +17,15 @@ services:
                 ipv4_address: 172.10.0.5
         volumes: 
             - ./source:/var/www/html/mietaro
+            - ./PHP-apache/index.php:/var/www/html/index.php
             - ./PHP-apache/log:/var/log
+            - ./PHP-apache/php.ini /usr/local/etc/php/php.ini
+            # - ./PHP-apache/00-default.conf:/etc/apache2/sites-enabled/00-default.conf
         env_file: ./PHP-apache/.env
         # stdin_open: true
         # tty: true
         ports:
-            - "30080:80"
+            - "80:80"
 
     # MySQL
     db:
@@ -33,6 +36,7 @@ services:
             mietaroNet:
                 ipv4_address: 172.10.0.6
         volumes:
+            - ./MySQL/my.cnf:/etc/mysql/conf.d/my.cnf
             - ./MySQL/data/:/var/lib/MySQL
             - ./MySQL/sql/:/docker-entrypoint-initdb.d
         env_file: ./MySQL/.env

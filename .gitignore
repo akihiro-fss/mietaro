@@ -1,2 +1,13 @@
-source/fuel/app/logs/
-PHP-apache/log/
+source/fuel/app/logs/*
+!.gitkeep
+PHP-apache/log/*
+!.gitkeep
+
+MySQL/data/*
+!.gitkeep
+
+MySQL/log/*
+!.gitkeep
+
+source/fuel/app/themes/default/*
+!.gitkeep
